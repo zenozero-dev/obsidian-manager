@@ -22,6 +22,18 @@ const buildHeaders = (token?: string) => {
 	return headers;
 };
 
+export const sanitizeRepo = (input: string): string => {
+	let repo = (input || "").trim();
+	repo = repo.replace(/^https?:\/\/github.com\//i, "");
+	repo = repo.replace(/^git@github.com:/i, "");
+	repo = repo.replace(/\.git$/i, "");
+	repo = repo.replace(/\/$/, "");
+	// 只保留 owner/repo 前两段
+	const parts = repo.split("/");
+	if (parts.length >= 2) repo = `${parts[0]}/${parts[1]}`;
+	return repo;
+};
+
 const fetchJson = async (url: string, token?: string) => {
 	const res = await requestUrl({ url, headers: buildHeaders(token) });
 	if (res.status >= 400) throw new Error(`GitHub request failed: ${res.status}`);
@@ -48,7 +60,8 @@ export interface ReleaseVersion {
 	prerelease: boolean;
 }
 
-export const fetchReleaseVersions = async (manager: Manager, repo: string): Promise<ReleaseVersion[]> => {
+export const fetchReleaseVersions = async (manager: Manager, repoInput: string): Promise<ReleaseVersion[]> => {
+	const repo = sanitizeRepo(repoInput);
 	const token = manager.settings.GITHUB_TOKEN?.trim() || undefined;
 	const url = `${API_BASE}/repos/${repo}/releases?per_page=50`;
 	const releases = (await fetchJson(url, token)) as unknown as ReleaseResponse[];
@@ -59,8 +72,9 @@ export const fetchReleaseVersions = async (manager: Manager, repo: string): Prom
 	})).filter((r) => r.version);
 };
 
-export const installPluginFromGithub = async (manager: Manager, repo: string, version?: string): Promise<boolean> => {
+export const installPluginFromGithub = async (manager: Manager, repoInput: string, version?: string): Promise<boolean> => {
 	try {
+		const repo = sanitizeRepo(repoInput);
 		const token = manager.settings.GITHUB_TOKEN?.trim() || undefined;
 		const release = await getRelease(repo, version, token);
 
@@ -118,8 +132,9 @@ export const installPluginFromGithub = async (manager: Manager, repo: string, ve
 	}
 };
 
-export const installThemeFromGithub = async (manager: Manager, repo: string, version?: string): Promise<boolean> => {
+export const installThemeFromGithub = async (manager: Manager, repoInput: string, version?: string): Promise<boolean> => {
 	try {
+		const repo = sanitizeRepo(repoInput);
 		const token = manager.settings.GITHUB_TOKEN?.trim() || undefined;
 		const release = await getRelease(repo, version, token);
 
