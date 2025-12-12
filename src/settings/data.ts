@@ -34,6 +34,8 @@ export interface ManagerSettings {
     REPO_MAP: Record<string, string>;
     // BPM 安装标记
     BPM_INSTALLED: string[];
+    // 面板隐藏 BPM 标签
+    HIDE_BPM_TAG: boolean;
 
     // GitHub 令牌
     GITHUB_TOKEN: string;
@@ -63,6 +65,7 @@ export const DEFAULT_SETTINGS: ManagerSettings = {
     COMMAND_GROUP: false,
     REPO_MAP: {},
     BPM_INSTALLED: [],
+    HIDE_BPM_TAG: false,
     GITHUB_TOKEN: "",
     GROUPS: [
         {

@@ -29,6 +29,7 @@ import { ShareModal } from "./share-modal";
 import { HideModal } from "./hide-modal";
 import { ShareTModal } from "./share-t-modal";
 import { installPluginFromGithub, installThemeFromGithub, fetchReleaseVersions, ReleaseVersion } from "../github-install";
+import { BPM_TAG_ID } from "src/repo-resolver";
 
 
 
@@ -766,9 +767,13 @@ export class ManagerModal extends Modal {
                 ManagerPlugin.tags.map((id: string) => {
                     const item = this.settings.TAGS.find((item) => item.id === id);
                     if (item) {
-                        const tag = this.manager.createTag(item.name, item.color, this.settings.TAG_STYLE);
-                        if (this.editorMode) tag.onclick = () => { new TagsModal(this.app, this.manager, this, ManagerPlugin).open(); };
-                        tags.appendChild(tag);
+                        if (item.id === BPM_TAG_ID && this.settings.HIDE_BPM_TAG) {
+                            // skip render
+                        } else {
+                            const tag = this.manager.createTag(item.name, item.color, this.settings.TAG_STYLE);
+                            if (this.editorMode && item.id !== BPM_TAG_ID) tag.onclick = () => { new TagsModal(this.app, this.manager, this, ManagerPlugin).open(); };
+                            tags.appendChild(tag);
+                        }
                     }
                 });
 
@@ -940,7 +945,7 @@ export class ManagerModal extends Modal {
 
         const repoSetting = new Setting(this.contentEl)
             .setName("仓库")
-            .setDesc("GitHub 仓库路径，例如 user/repo");
+            .setDesc("GitHub 仓库路径，支持 <user>/<repo> 和 https://github.com/<user>/<repo> 两种形式。");
         repoSetting.addText((text) => {
             text.setPlaceholder("user/repo");
             text.setValue(this.installRepo);

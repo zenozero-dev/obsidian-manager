@@ -4,6 +4,7 @@ import Manager from 'main';
 import { ManagerModal } from './manager-modal';
 import { ManagerPlugin } from 'src/data/types';
 import Commands from 'src/command';
+import { BPM_TAG_ID } from 'src/repo-resolver';
 
 export class TagsModal extends Modal {
     settings: ManagerSettings;
@@ -45,6 +46,7 @@ export class TagsModal extends Modal {
             if (this.selected == '' || this.selected != tag.id) {
                 itemEl.addExtraButton(cb => cb
                     .setIcon('settings')
+                    .setDisabled(tag.id === BPM_TAG_ID)
                     .onClick(() => {
                         this.selected = tag.id;
                         this.reloadShowData();
@@ -52,6 +54,7 @@ export class TagsModal extends Modal {
                 )
                 itemEl.addToggle(cb => cb
                     .setValue(this.managerPlugin.tags.includes(tag.id))
+                    .setDisabled(tag.id === BPM_TAG_ID)
                     .onChange((isChecked) => {
                         if (isChecked) {
                             // 添加开启的标签
@@ -72,6 +75,10 @@ export class TagsModal extends Modal {
                 tempEl.appendChild(tagEl);
             }
             if (this.selected != '' && this.selected == tag.id) {
+                if (tag.id === BPM_TAG_ID) {
+                    this.selected = '';
+                    continue;
+                }
                 itemEl.addColorPicker(cb => cb
                     .setValue(tag.color)
                     .onChange((value) => {
@@ -90,6 +97,7 @@ export class TagsModal extends Modal {
                 )
                 itemEl.addExtraButton(cb => cb
                     .setIcon('trash-2')
+                    .setDisabled(tag.id === BPM_TAG_ID)
                     .onClick(() => {
                         const hasTestTag = this.settings.Plugins.some(plugin => plugin.tags && plugin.tags.includes(tag.id));
                         if (!hasTestTag) {
@@ -142,7 +150,7 @@ export class TagsModal extends Modal {
                 .setIcon('plus')
                 .onClick(() => {
                     const containsId = this.manager.settings.TAGS.some(tag => tag.id === id);
-                    if (!containsId && id !== '') {
+                    if (!containsId && id !== '' && id !== BPM_TAG_ID) {
                         if (color === '') color = '#000000';
                         this.manager.settings.TAGS.push({ id, name, color });
                         this.manager.saveSettings();
@@ -185,4 +193,3 @@ export class TagsModal extends Modal {
         this.contentEl.empty();
     }
 }
-

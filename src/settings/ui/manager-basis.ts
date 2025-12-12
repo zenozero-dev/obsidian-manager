@@ -66,6 +66,17 @@ export default class ManagerBasis extends BaseSetting {
             Commands(this.app, this.manager);
         });
 
+        const hideBpmTagBar = new Setting(this.containerEl)
+            .setName("隐藏“bpm安装”标签")
+            .setDesc("开启后列表不显示自动添加的 bpm 安装标签，仅隐藏展示。");
+        const hideBpmTagToggle = new ToggleComponent(hideBpmTagBar.controlEl);
+        hideBpmTagToggle.setValue(this.settings.HIDE_BPM_TAG);
+        hideBpmTagToggle.onChange((value) => {
+            this.settings.HIDE_BPM_TAG = value;
+            this.manager.saveSettings();
+            this.manager.managerModal?.reloadShowData();
+        });
+
         const tokenBar = new Setting(this.containerEl)
             .setName("GitHub API Token")
             .setDesc("用于从 GitHub 下载插件/主题，避免频繁的 API 限流。可留空。");
