@@ -306,8 +306,11 @@ export class ManagerModal extends Modal {
         editorButton.onClick(() => {
             this.editorMode = !this.editorMode;
             this.editorMode ? editorButton.setIcon("pen-off") : editorButton.setIcon("pen");
-            this.reloadShowData();
-            if (!this.editorMode) this.refreshFilterOptions();
+            if (!this.editorMode) {
+                this.refreshFilterOptions();
+            } else {
+                this.renderContent();
+            }
         });
 
         // [操作行] 插件设置
