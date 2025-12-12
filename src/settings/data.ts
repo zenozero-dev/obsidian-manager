@@ -30,6 +30,9 @@ export interface ManagerSettings {
     // 命令组
     COMMAND_GROUP: boolean;
 
+    // GitHub 令牌
+    GITHUB_TOKEN: string;
+
     GROUPS: Type[];
     TAGS: Tag[];
     DELAYS: Delay[];
@@ -53,6 +56,7 @@ export const DEFAULT_SETTINGS: ManagerSettings = {
     FADE_OUT_DISABLED_PLUGINS: true,
     COMMAND_ITEM: false,
     COMMAND_GROUP: false,
+    GITHUB_TOKEN: "",
     GROUPS: [
         {
             "id": "default",

@@ -28,6 +28,7 @@ import { NoteModal } from "./note-modal";
 import { ShareModal } from "./share-modal";
 import { HideModal } from "./hide-modal";
 import { ShareTModal } from "./share-t-modal";
+import { installPluginFromGithub, installThemeFromGithub, fetchReleaseVersions, ReleaseVersion } from "../github-install";
 
 
 
@@ -58,6 +59,14 @@ export class ManagerModal extends Modal {
     delay = "";
     // 搜索内容
     searchText = "";
+
+    // 安装模式
+    installMode = false;
+    installType: "plugin" | "theme" = "plugin";
+    installRepo = "";
+    installVersion = "";
+    installVersions: ReleaseVersion[] = [];
+    searchBarEl?: HTMLElement;
 
 
     // 编辑模式
@@ -306,6 +315,19 @@ export class ManagerModal extends Modal {
             // this.close();
         });
 
+        // [操作行] 插件/主题安装模式
+        const installToggle = new ButtonComponent(actionBar.controlEl);
+        installToggle.setIcon("download");
+        installToggle.setTooltip("安装插件 / 主题（GitHub 仓库）");
+        installToggle.onClick(() => {
+            this.installMode = !this.installMode;
+            installToggle.setIcon(this.installMode ? "arrow-left" : "download");
+            if (this.searchBarEl) {
+                this.installMode ? this.searchBarEl.addClass("manager-display-none") : this.searchBarEl.removeClass("manager-display-none");
+            }
+            this.renderContent();
+        });
+
 
         // [测试行] 刷新插件
         if (this.developerMode) {
@@ -331,6 +353,7 @@ export class ManagerModal extends Modal {
 
         // [搜索行]
         const searchBar = new Setting(this.titleEl).setClass("manager-bar__search").setName(this.manager.translator.t("通用_搜索_文本"));
+        this.searchBarEl = searchBar.settingEl;
 
         const filterOptions = {
             "all": this.manager.translator.t("筛选_全部_描述"),
@@ -880,13 +903,103 @@ export class ManagerModal extends Modal {
         return summary;
     }
 
+    // 安装面板
+    private showInstallPanel() {
+        this.contentEl.empty();
+        const info = this.contentEl.createEl("div");
+        info.addClass("manager-install__info");
+        info.setText("从 GitHub 仓库安装插件或主题（读取最新发布资产）。");
+
+        const typeSetting = new Setting(this.contentEl)
+            .setName("类型")
+            .setDesc("选择要安装插件或主题");
+        typeSetting.addDropdown((dd) => {
+            dd.addOptions({ "plugin": "插件", "theme": "主题" });
+            dd.setValue(this.installType);
+            dd.onChange((v: "plugin" | "theme") => { this.installType = v; });
+        });
+
+        const repoSetting = new Setting(this.contentEl)
+            .setName("仓库")
+            .setDesc("GitHub 仓库路径，例如 user/repo");
+        repoSetting.addText((text) => {
+            text.setPlaceholder("user/repo");
+            text.setValue(this.installRepo);
+            text.onChange((v) => { this.installRepo = v; this.installVersions = []; this.installVersion = ""; this.renderContent(); });
+        });
+
+        const versionSetting = new Setting(this.contentEl)
+            .setName("版本")
+            .setDesc("点击获取 GitHub 发布版本后可选择；不选择则默认最新。");
+        versionSetting.addDropdown((dd) => {
+            dd.addOption("", "最新发布");
+            this.installVersions.forEach((v) => dd.addOption(v.version, `${v.version}${v.prerelease ? " (pre)" : ""}`));
+            dd.setValue(this.installVersion);
+            dd.onChange((v) => { this.installVersion = v; });
+            dd.selectEl.style.minWidth = "200px";
+        });
+        versionSetting.addButton((btn) => {
+            btn.setButtonText("获取版本");
+            btn.setCta();
+            btn.onClick(async () => {
+                if (!this.installRepo) { new Notice("请先填写仓库路径"); return; }
+                btn.setDisabled(true);
+                btn.setButtonText("获取中...");
+                try {
+                    this.installVersions = await fetchReleaseVersions(this.manager, this.installRepo);
+                    if (this.installVersions.length === 0) new Notice("未找到发行版本，尝试手动填写 tag");
+                    this.installVersion = "";
+                } catch (e) {
+                    console.error(e);
+                    new Notice("获取发行版本失败，请检查仓库或网络");
+                }
+                btn.setDisabled(false);
+                btn.setButtonText("获取版本");
+                this.renderContent();
+            });
+        });
+
+        const action = new Setting(this.contentEl)
+            .setName("操作");
+        action.addButton((btn) => {
+            btn.setButtonText("开始安装");
+            btn.setCta();
+            btn.onClick(async () => {
+                if (!this.installRepo) { new Notice("请输入仓库路径"); return; }
+                btn.setDisabled(true);
+                const ok = this.installType === "plugin"
+                    ? await installPluginFromGithub(this.manager, this.installRepo, this.installVersion)
+                    : await installThemeFromGithub(this.manager, this.installRepo, this.installVersion);
+                btn.setDisabled(false);
+                if (ok) {
+                    this.installMode = false;
+                    if (this.searchBarEl) this.searchBarEl.removeClass("manager-display-none");
+                    this.renderContent();
+                }
+            });
+        });
+    }
+
+    private renderContent() {
+        this.contentEl.empty();
+        if (this.installMode) {
+            this.showInstallPanel();
+        } else {
+            this.showData();
+        }
+    }
+
     public async reloadShowData() {
         let scrollTop = 0;
         const modalElement: HTMLElement = this.contentEl;
         scrollTop = modalElement.scrollTop;
         modalElement.empty();
-        this.showData();
-        modalElement.scrollTo(0, scrollTop);
+        if (this.installMode) {
+            this.showInstallPanel();
+        } else {
+            this.showData();
+            modalElement.scrollTo(0, scrollTop);
+        }
     }
 
     public async onOpen() {

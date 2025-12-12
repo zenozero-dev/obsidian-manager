@@ -1,5 +1,5 @@
 import BaseSetting from "../base-setting";
-import { DropdownComponent, Setting, ToggleComponent } from "obsidian";
+import { DropdownComponent, Setting, ToggleComponent, TextComponent } from "obsidian";
 import Commands from "src/command";
 // import { GROUP_STYLE, ITEM_STYLE, TAG_STYLE } from "src/data/data";
 
@@ -64,6 +64,17 @@ export default class ManagerBasis extends BaseSetting {
             this.settings.COMMAND_GROUP = value;
             this.manager.saveSettings();
             Commands(this.app, this.manager);
+        });
+
+        const tokenBar = new Setting(this.containerEl)
+            .setName("GitHub API Token")
+            .setDesc("用于从 GitHub 下载插件/主题，避免频繁的 API 限流。可留空。");
+        const tokenInput = new TextComponent(tokenBar.controlEl);
+        tokenInput.setPlaceholder("ghp_xxx");
+        tokenInput.setValue(this.settings.GITHUB_TOKEN || "");
+        tokenInput.onChange((value) => {
+            this.settings.GITHUB_TOKEN = value.trim();
+            this.manager.saveSettings();
         });
 
         new Setting(this.containerEl)
