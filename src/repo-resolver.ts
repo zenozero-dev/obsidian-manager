@@ -2,7 +2,6 @@ import { normalizePath, requestUrl } from "obsidian";
 import Manager from "main";
 
 export const BPM_TAG_ID = "bpm-install";
-const BPM_TAG_NAME = "bpm安装";
 const CACHE_FILE = "community-plugins-cache.json";
 type RepoMap = Record<string, string>;
 
@@ -10,6 +9,7 @@ export class RepoResolver {
 	private manager: Manager;
 	private cacheLoaded = false;
 	private cache: RepoMap = {};
+	private bpmTagNameFallback = "bpm install";
 
 	constructor(manager: Manager) {
 		this.manager = manager;
@@ -96,7 +96,7 @@ export const ensureBpmTagExists = (manager: Manager) => {
 	if (!manager.settings.TAGS.find((t) => t.id === BPM_TAG_ID)) {
 		manager.settings.TAGS.push({
 			id: BPM_TAG_ID,
-			name: BPM_TAG_NAME,
+			name: manager.translator ? manager.translator.t("标签_BPM安装_名称") : "bpm install",
 			color: "#409EFF",
 		});
 	}

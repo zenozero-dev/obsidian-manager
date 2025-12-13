@@ -46,7 +46,7 @@ export default {
     设置_基础设置_导出目录_描述: '相对库路径的文件夹，用于导出 BPM 插件信息（支持 Base）。不会在输入时立刻写入，需点击“保存设置”。',
     设置_基础设置_导出目录_示例: '例如: BPM-Export',
     设置_基础设置_导出提示_标题: '前置约定（frontmatter 键名）',
-    设置_基础设置_导出提示_描述: '只读: bpm_ro_id/group/tags/delay/installed_via_bpm/updated；可写: bpm_rw_name/desc/note/enabled；条件可写: bpm_rwc_repo（仅官方未匹配且非 BPM 安装时）。',
+    设置_基础设置_导出提示_描述: '只读: bpm_ro_id/name/group/tags/delay/installed_via_bpm/updated；可写: bpm_rw_desc/note/enabled；条件可写: bpm_rwc_repo（仅官方未匹配且非 BPM 安装时）。',
     设置_基础设置_GITHUB_TOKEN_标题: 'GitHub API Token',
     设置_基础设置_GITHUB_TOKEN_描述: '用于从 GitHub 下载插件/主题，避免频繁的 API 限流。可留空。',
 
@@ -125,6 +125,7 @@ export default {
     设置_基础设置_单独命令_描述: '启用此选项可以单独控制每个插件的启用和禁用状态。(重启Obsidian生效)',
     设置_基础设置_分组命令_标题: '分组控制插件命令',
     设置_基础设置_分组命令_描述: '启用此选项可以一键启用或禁用指定分组中的所有插件。(重启Obsidian生效)',
+    标签_BPM安装_名称: 'bpm安装',
 
     设置_延迟设置_通知_一: '[延迟] 已添加',
     设置_延迟设置_通知_二: '[延迟] ID已存在或为空',

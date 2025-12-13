@@ -42,7 +42,7 @@ export default {
     设置_基础设置_导出目录_标题: 'Répertoire d’export des infos',
     设置_基础设置_导出目录_描述: 'Chemin relatif du coffre pour exporter les infos BPM (Base). Appliqué en cliquant sur “Enregistrer les paramètres”.',
     设置_基础设置_导出提示_标题: 'Conventions frontmatter',
-    设置_基础设置_导出提示_描述: 'Lecture seule : bpm_ro_id/group/tags/delay/installed_via_bpm/updated ; éditable : bpm_rw_name/desc/note/enabled ; conditionnel : bpm_rwc_repo (sans correspondance officielle et non installé par BPM).',
+    设置_基础设置_导出提示_描述: 'Lecture seule : bpm_ro_id/name/group/tags/delay/installed_via_bpm/updated ; éditable : bpm_rw_desc/note/enabled ; conditionnel : bpm_rwc_repo (sans correspondance officielle et non installé par BPM).',
 
     设置_基础设置_前缀: 'Paramètres de base',
     设置_分组设置_前缀: 'Groupe',
@@ -67,6 +67,7 @@ export default {
     设置_基础设置_单独命令_描述: 'Activez cette option pour contrôler l\'état activé et désactivé de chaque plugin séparément. (Redémarrez Obsidian pour que les modifications prennent effet)',
     设置_基础设置_分组命令_标题: 'Contrôler les commandes des plugins par groupe',
     设置_基础设置_分组命令_描述: 'Activez cette option pour activer ou désactiver tous les plugins d\'un groupe spécifique avec un seul clic. (Redémarrez Obsidian pour que les modifications prennent effet)',
+    标签_BPM安装_名称: 'bpm install',
 
     设置_延迟设置_通知_一: '[Retard] Ajouté',
     设置_延迟设置_通知_二: '[Retard] L\'ID existe déjà ou est vide',

@@ -12,6 +12,8 @@ export interface ManagerSettings {
 
     // 语言
     LANGUAGE: string;
+    // 语言是否已按系统初始化过（用于新老版本兼容）
+    LANGUAGE_INITIALIZED?: boolean;
     // 居中
     CENTER: boolean;
     // 样式
@@ -56,7 +58,8 @@ export const DEFAULT_SETTINGS: ManagerSettings = {
     FILTER_GROUP: "",
     FILTER_DELAY: "",
 
-    LANGUAGE: "zh-cn",
+    LANGUAGE: "",
+    LANGUAGE_INITIALIZED: false,
     CENTER: false,
     ITEM_STYLE: "alwaysExpand",
     GROUP_STYLE: "a",
@@ -70,25 +73,8 @@ export const DEFAULT_SETTINGS: ManagerSettings = {
     HIDE_BPM_TAG: false,
     EXPORT_DIR: "",
     GITHUB_TOKEN: "",
-    GROUPS: [
-        {
-            "id": "default",
-            "name": "默认组",
-            "color": "#A079FF"
-        },
-    ],
-    TAGS: [
-        {
-            "id": "default",
-            "name": "默认标签",
-            "color": "#A079FF"
-        },
-        {
-            "id": "bpm-install",
-            "name": "bpm安装",
-            "color": "#409EFF"
-        },
-    ],
+    GROUPS: [],
+    TAGS: [],
     DELAYS: [
         {
             "id": "default",

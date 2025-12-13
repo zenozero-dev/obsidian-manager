@@ -30,11 +30,17 @@ export default class Manager extends Plugin {
 
         console.log(`%c ${this.manifest.name} %c v${this.manifest.version} `, `padding: 2px; border-radius: 2px 0 0 2px; color: #fff; background: #5B5B5B;`, `padding: 2px; border-radius: 0 2px 2px 0; color: #fff; background: #409EFF;`);
         await this.loadSettings();
+        // 首次安装或未设置语言时，自动跟随 Obsidian 语言
+        if (!this.settings.LANGUAGE_INITIALIZED || !this.settings.LANGUAGE) {
+            this.settings.LANGUAGE = this.getAppLanguage();
+            this.settings.LANGUAGE_INITIALIZED = true;
+            await this.saveSettings();
+        }
+        // 初始化语言系统
+        this.translator = new Translator(this);
         ensureBpmTagExists(this);
         this.ensureBpmTagAndRecords();
         this.repoResolver = new RepoResolver(this);
-        // 初始化语言系统
-        this.translator = new Translator(this);
         // 初始化侧边栏图标
         this.addRibbonIcon('folder-cog', this.translator.t('通用_管理器_文本'), () => { this.managerModal = new ManagerModal(this.app, this); this.managerModal.open(); });
         // 初始化设置界面
@@ -105,7 +111,6 @@ export default class Manager extends Plugin {
             const mp = this.settings.Plugins.find(p => p.id === id);
             if (!mp) return;
             const safe = (key: string) => frontmatter[key];
-            mp.name = safe("bpm_rw_name") ?? mp.name;
             mp.desc = safe("bpm_rw_desc") ?? mp.desc;
             mp.note = safe("bpm_rw_note") ?? mp.note;
             if (typeof safe("bpm_rw_enabled") === "boolean") {
@@ -172,11 +177,10 @@ export default class Manager extends Plugin {
             if (!(await adapter.exists(vaultRelativeDir))) {
                 await adapter.mkdir(vaultRelativeDir);
             }
-            const fileName = `${this.exportFileName(mp)}.md`;
-            const vaultPath = normalizePath(`${vaultRelativeDir}/${fileName}`);
+            const targetPath = await this.resolveExportPath(mp, vaultRelativeDir);
             let body = `\n\n${this.translator.t('导出_正文提示')}`;
-            if (await adapter.exists(vaultPath)) {
-                const old = await adapter.read(vaultPath);
+            if (await adapter.exists(targetPath)) {
+                const old = await adapter.read(targetPath);
                 const parsed = this.parseFrontmatter(old);
                 body = parsed.body || body;
             }
@@ -190,7 +194,7 @@ export default class Manager extends Plugin {
             }
             const frontmatter: Record<string, any> = {
                 "bpm_ro_id": mp.id,
-                "bpm_rw_name": mp.name,
+                "bpm_ro_name": mp.name,
                 "bpm_rw_desc": mp.desc,
                 "bpm_rw_note": mp.note,
                 "bpm_rw_enabled": mp.enabled,
@@ -204,7 +208,7 @@ export default class Manager extends Plugin {
             const yaml = stringifyYaml(frontmatter).trimEnd();
             const content = `---\n${yaml}\n---${body.startsWith("\n") ? "" : "\n"}${body}`;
             this.exportWriting = true;
-            await adapter.write(vaultPath, content);
+            await adapter.write(targetPath, content);
         } catch (e) {
             console.error("导出 BPM 笔记失败", e);
         } finally {
@@ -231,7 +235,56 @@ export default class Manager extends Plugin {
     private exportFileName(mp: ManagerPlugin): string {
         const base = (mp.name || mp.id || "plugin").trim();
         const safe = base.replace(/[/\\?%*:|"<>]/g, "-").replace(/\s+/g, " ");
-        return safe || mp.id || "plugin";
+        return safe || "plugin";
+    }
+
+    // 查找/重命名导出文件：优先按 frontmatter 中的 bpm_ro_id 匹配，必要时将旧文件名重命名为当前 name
+    private async resolveExportPath(mp: ManagerPlugin, vaultRelativeDir: string): Promise<string> {
+        const adapter = this.app.vault.adapter;
+        const normalizedDir = normalizePath(vaultRelativeDir);
+        const desired = normalizePath(`${normalizedDir}/${this.exportFileName(mp)}.md`);
+
+        // 1) 在导出目录内按 frontmatter 查找
+        const files = this.app.vault.getMarkdownFiles().filter(f => {
+            const p = normalizePath(f.path);
+            return p === normalizedDir || p.startsWith(normalizedDir + "/");
+        });
+        for (const f of files) {
+            try {
+                const content = await this.app.vault.read(f);
+                const { frontmatter } = this.parseFrontmatter(content);
+                if (frontmatter?.["bpm_ro_id"] === mp.id) {
+                    const currentPath = normalizePath(f.path);
+                    if (currentPath !== desired) {
+                        // 如果目标不存在，则重命名以保持文件名与 name 一致
+                        if (!(await adapter.exists(desired))) {
+                            await adapter.rename(currentPath, desired);
+                            return desired;
+                        }
+                        return currentPath;
+                    }
+                    return currentPath;
+                }
+            } catch {
+                // ignore parse errors
+            }
+        }
+
+        // 2) 如果目标路径已存在，直接使用
+        if (await adapter.exists(desired)) return desired;
+
+        // 3) 回退：如果存在基于 id 的旧文件名，复用它并重命名到当前 desired
+        const legacyById = normalizePath(`${normalizedDir}/${(mp.id || "plugin").replace(/[/\\?%*:|"<>]/g, "-") || "plugin"}.md`);
+        if (await adapter.exists(legacyById)) {
+            if (!(await adapter.exists(desired))) {
+                await adapter.rename(legacyById, desired);
+                return desired;
+            }
+            return legacyById;
+        }
+
+        // 4) 默认使用当前 name 生成的路径
+        return desired;
     }
 
     // 关闭延时 调用
@@ -379,6 +432,35 @@ export default class Manager extends Plugin {
         const g = Math.min(255, Math.max(0, ((rgb >> 8) & 0xFF) + amount));
         const b = Math.min(255, Math.max(0, (rgb & 0xFF) + amount));
         return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase()}`;
+    }
+
+    // 获取 Obsidian 当前语言（兼容旧版类型定义）
+    private getAppLanguage(): string {
+        // 优先使用 app.i18n.locale / language
+        // @ts-ignore
+        const anyApp = this.app as any;
+        const langCandidates: (string | undefined)[] = [
+            anyApp?.i18n?.locale,
+            anyApp?.i18n?.lang,
+            anyApp?.i18n?.language,
+            (window as any)?.moment?.locale?.(),
+            (navigator as any)?.language,
+        ];
+        const picked = langCandidates.find((l) => typeof l === "string" && l.length > 0) || "en";
+        const lower = picked.toLowerCase().replace('_', '-');
+        const map: Record<string, string> = {
+            'en': 'en',
+            'en-gb': 'en',
+            'zh': 'zh-cn',
+            'zh-cn': 'zh-cn',
+            'zh-tw': 'zh-cn',
+            'ru': 'ru',
+            'ja': 'ja',
+            'ko': 'ko',
+            'fr': 'fr',
+            'es': 'es',
+        };
+        return map[lower] || map[lower.split('-')[0]] || 'en';
     }
 
     /**

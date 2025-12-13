@@ -35,9 +35,27 @@ export class Translator {
 
 	// 方法用于获取翻译后的字符串
 	public t(str: keyof typeof zh_cn): string {
-		const language = this.manager.settings.LANGUAGE || 'zh-cn'; // 默认使用 'zh-cn'
+		const language = this.normalizeLang(this.manager.settings.LANGUAGE || 'zh-cn'); // 默认使用 'zh-cn'
 		const locale = this.localeMap[language] || zh_cn; // 如果 language 不存在，则使用 zh_cn
 		return locale[str] || zh_cn[str]; // 如果 str 在 locale 中不存在，则使用 zh_cn 中的默认值
+	}
+
+	private normalizeLang(lang: string): string {
+		const lower = (lang || '').toLowerCase().replace('_', '-');
+		const map: Record<string, string> = {
+			// Official mappings we support
+			'en': 'en',
+			'en-gb': 'en',
+			'zh': 'zh-cn',
+			'zh-cn': 'zh-cn',
+			'zh-tw': 'zh-cn',
+			'ru': 'ru',
+			'ja': 'ja',
+			'ko': 'ko',
+			'fr': 'fr',
+			'es': 'es',
+		};
+		return map[lower] || map[lower.split('-')[0]] || 'en';
 	}
 }
 

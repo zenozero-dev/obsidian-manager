@@ -1,5 +1,6 @@
 import BaseSetting from "../base-setting";
 import { Notice, Setting } from "obsidian";
+import { BPM_TAG_ID } from "src/repo-resolver";
 
 export default class ManagerTag extends BaseSetting {
     main(): void {
@@ -47,15 +48,18 @@ export default class ManagerTag extends BaseSetting {
             const item = new Setting(this.containerEl)
             item.setClass('manager-setting-tag__item')
             // item.setName(`${index + 1}. `)
+            const isBpmTag = tag.id === BPM_TAG_ID;
             item.addColorPicker(cb => cb
+                .setDisabled(isBpmTag)
                 .setValue(tag.color)
                 .onChange((value) => {
                     tag.color = value;
                     this.manager.saveSettings();
                     this.settingTab.tagDisplay();
                 })
-            )
+            );
             item.addText(cb => cb
+                .setDisabled(isBpmTag)
                 .setValue(tag.name)
                 .onChange((value) => {
                     tag.name = value;
@@ -63,9 +67,10 @@ export default class ManagerTag extends BaseSetting {
                 }).inputEl.addEventListener('blur', () => {
                     this.settingTab.tagDisplay();
                 })
-            )
+            );
             item.addExtraButton(cb => cb
                 .setIcon('trash-2')
+                .setDisabled(isBpmTag)
                 .onClick(() => {
                     const hasTestTag = this.settings.Plugins.some(plugin => plugin.tags && plugin.tags.includes(tag.id));
                     if (!hasTestTag) {
@@ -77,7 +82,7 @@ export default class ManagerTag extends BaseSetting {
                         new Notice(this.manager.translator.t('设置_标签设置_通知_四'));
                     }
                 })
-            )
+            );
             const tagEl = this.manager.createTag(tag.name, tag.color, this.settings.TAG_STYLE);
             item.nameEl.appendChild(tagEl);
             item.nameEl.appendText(` [${tag.id}]`);

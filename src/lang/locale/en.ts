@@ -24,7 +24,7 @@ export default {
     设置_基础设置_导出目录_描述: 'Relative vault path to export BPM plugin info (for Base). Changes apply when clicking “Save settings”.',
     设置_基础设置_导出目录_示例: 'e.g., BPM-Export',
     设置_基础设置_导出提示_标题: 'Frontmatter conventions',
-    设置_基础设置_导出提示_描述: 'Read-only: bpm_ro_id/group/tags/delay/installed_via_bpm/updated; writable: bpm_rw_name/desc/note/enabled; conditional: bpm_rwc_repo (only when official match missing and not BPM-installed).',
+    设置_基础设置_导出提示_描述: 'Read-only: bpm_ro_id/name/group/tags/delay/installed_via_bpm/updated; writable: bpm_rw_desc/note/enabled; conditional: bpm_rwc_repo (only when official match is missing and not BPM-installed).',
     设置_基础设置_GITHUB_TOKEN_标题: 'GitHub API Token',
     设置_基础设置_GITHUB_TOKEN_描述: 'Used to download plugins/themes from GitHub and reduce rate limits. Optional.',
     命令行_启用_文本: 'Enable',
@@ -140,4 +140,5 @@ export default {
     设置_提示_一_描述: 'Due to limited capabilities, I cannot fix this issue. Please disable delayed startup to resolve all conflict issues.',
 
     命令_管理面板_描述: 'Open the plugin manager',
+    标签_BPM安装_名称: 'bpm install',
 }
