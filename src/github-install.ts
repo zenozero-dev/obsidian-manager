@@ -122,6 +122,7 @@ export const installPluginFromGithub = async (manager: Manager, repoInput: strin
 		const mp = manager.settings.Plugins.find((p) => p.id === manifest.id);
 		if (mp && !mp.tags.includes(BPM_TAG_ID)) mp.tags.push(BPM_TAG_ID);
 		manager.saveSettings();
+		manager.exportPluginNote(manifest.id);
 
 		new Notice(`已安装/更新插件：${manifest.name || manifest.id}`);
 		return true;

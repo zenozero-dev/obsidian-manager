@@ -1,5 +1,5 @@
 import BaseSetting from "../base-setting";
-import { DropdownComponent, Setting, ToggleComponent, TextComponent } from "obsidian";
+import { DropdownComponent, Setting, ToggleComponent, TextComponent, TFolder } from "obsidian";
 import Commands from "src/command";
 // import { GROUP_STYLE, ITEM_STYLE, TAG_STYLE } from "src/data/data";
 
@@ -76,6 +76,32 @@ export default class ManagerBasis extends BaseSetting {
             this.manager.saveSettings();
             this.manager.managerModal?.reloadShowData();
         });
+
+        // 导出目录与前置提示
+        const exportDirBar = new Setting(this.containerEl)
+            .setName("插件信息导出目录")
+            .setDesc("相对库路径的文件夹，用于导出 BPM 插件信息（支持 Base）。不会在输入时立刻写入，需点击“保存设置”。");
+        const exportDirInput = new TextComponent(exportDirBar.controlEl);
+        exportDirInput.setPlaceholder("例如: BPM-Export");
+        exportDirInput.setValue(this.settings.EXPORT_DIR || "");
+
+        exportDirInput.inputEl.addEventListener("blur", () => {
+            exportDirInput.setValue(exportDirInput.getValue().trim());
+        });
+
+        exportDirBar.addButton((btn) => {
+            btn.setButtonText("保存设置").setCta();
+            btn.onClick(() => {
+                this.settings.EXPORT_DIR = exportDirInput.getValue().trim();
+                this.manager.saveSettings();
+                this.manager.setupExportWatcher();
+                this.manager.exportAllPluginNotes();
+            });
+        });
+
+        new Setting(this.containerEl)
+            .setName("前置约定（frontmatter 键名）")
+            .setDesc("只读: bpm_ro_id/group/tags/delay/installed_via_bpm/updated；可写: bpm_rw_name/desc/note/enabled；条件可写: bpm_rwc_repo（仅官方未匹配且非 BPM 安装时）。");
 
         const tokenBar = new Setting(this.containerEl)
             .setName("GitHub API Token")
