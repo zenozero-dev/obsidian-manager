@@ -1,4 +1,3 @@
-import * as path from "path";
 import {
     App,
     ButtonComponent,
@@ -13,6 +12,7 @@ import {
     setIcon,
     Setting,
     ToggleComponent,
+    Platform,
 } from "obsidian";
 
 import { ManagerSettings } from "../settings/data";
@@ -30,6 +30,7 @@ import { HideModal } from "./hide-modal";
 import { ShareTModal } from "./share-t-modal";
 import { installPluginFromGithub, installThemeFromGithub, fetchReleaseVersions, ReleaseVersion } from "../github-install";
 import { BPM_TAG_ID } from "src/repo-resolver";
+import { normalizePath } from "obsidian";
 
 
 
@@ -71,6 +72,8 @@ export class ManagerModal extends Modal {
     groupDropdown?: DropdownComponent;
     tagDropdown?: DropdownComponent;
     delayDropdown?: DropdownComponent;
+    actionCollapsed = false;
+    filterCollapsed = false;
 
 
     // 编辑模式
@@ -90,8 +93,7 @@ export class ManagerModal extends Modal {
         this.appPlugins = this.app.plugins;
         this.manager = manager;
         this.settings = manager.settings;
-        // @ts-ignore
-        this.basePath = path.normalize(this.app.vault.adapter.getBasePath());
+        this.basePath = normalizePath(`${this.app.vault.configDir}`);
         // 首次启动运行下 避免有新加入的插件
         manager.synchronizePlugins(
             Object.values(this.appPlugins.manifests).filter(
@@ -155,8 +157,9 @@ export class ManagerModal extends Modal {
         const modalEl: HTMLElement = this.contentEl.parentElement;
         this.modalContainer = modalEl;
         modalEl.addClass("manager-container");
+        if (Platform.isMobileApp) modalEl.addClass("manager-container--mobile");
         // 靠上
-        if (!this.settings.CENTER) modalEl.addClass("manager-container__top");
+        if (!this.settings.CENTER && !Platform.isMobileApp) modalEl.addClass("manager-container__top");
         if (this.editorMode) modalEl.addClass("manager-container--editing");
 
         modalEl.removeChild(modalEl.getElementsByClassName("modal-close-button")[0]);
@@ -168,23 +171,51 @@ export class ManagerModal extends Modal {
         this.modalEl.appendChild(this.footEl);
 
         // [操作行]
-        const actionBar = new Setting(this.titleEl).setClass("manager-bar__action").setName(this.manager.translator.t("通用_操作_文本"));
+        const actionWrapper = this.titleEl.createDiv("manager-section manager-section--row");
+        const actionHeader = actionWrapper.createDiv("manager-section__header");
+        const actionArrow = actionHeader.createSpan({ text: this.actionCollapsed ? "▼" : "▲" });
+        actionArrow.addClass("manager-section__arrow");
+        actionHeader.createSpan({ text: this.manager.translator.t("通用_操作_文本") });
+        const actionContent = actionWrapper.createDiv("manager-section__content");
+        actionContent.addClass("manager-section__content--actions");
+        const bindLongPressTooltip = (btn: ButtonComponent, text: string) => {
+            let timer: number | undefined;
+            const show = () => { new Notice(text, 1500); };
+            btn.buttonEl.addEventListener("touchstart", () => {
+                timer = window.setTimeout(show, 500);
+            });
+            const clear = () => { if (timer) window.clearTimeout(timer); timer = undefined; };
+            btn.buttonEl.addEventListener("touchend", clear);
+            btn.buttonEl.addEventListener("touchcancel", clear);
+        };
+        const updateActionState = () => {
+            actionContent.toggleClass("is-collapsed", this.actionCollapsed);
+            actionWrapper.toggleClass("is-collapsed", this.actionCollapsed);
+            actionArrow.setText(this.actionCollapsed ? "▼" : "▲");
+        };
+        actionHeader.onclick = () => { this.actionCollapsed = !this.actionCollapsed; updateActionState(); };
+        const actionBar = new Setting(actionContent).setClass("manager-bar__action").setName("");
 
         // [操作行] Github
         const githubButton = new ButtonComponent(actionBar.controlEl);
         githubButton.setIcon("github");
         githubButton.setTooltip(this.manager.translator.t("管理器_GITHUB_描述"));
+        githubButton.setCta();
+        this.bindLongPressTooltip(githubButton.buttonEl, this.manager.translator.t("管理器_GITHUB_描述"));
         githubButton.onClick(() => { window.open(this.manager.manifest.authorUrl) });
         // [操作行] Github
         const tutorialButton = new ButtonComponent(actionBar.controlEl);
         tutorialButton.setIcon("book-open");
         tutorialButton.setTooltip(this.manager.translator.t("管理器_视频教程_描述"));
+        this.bindLongPressTooltip(tutorialButton.buttonEl, this.manager.translator.t("管理器_视频教程_描述"));
         tutorialButton.onClick(() => { window.open("https://www.bilibili.com/video/BV1WyrkYMEce/"); });
 
         // [操作行] 检查更新
         const updateButton = new ButtonComponent(actionBar.controlEl);
         updateButton.setIcon("rss");
         updateButton.setTooltip(this.manager.translator.t("管理器_检查更新_描述"));
+        updateButton.setCta();
+        this.bindLongPressTooltip(updateButton.buttonEl, this.manager.translator.t("管理器_检查更新_描述"));
         updateButton.onClick(async () => {
             try {
                 const result = await this.appPlugins.checkForUpdates();
@@ -234,6 +265,7 @@ export class ManagerModal extends Modal {
         // [操作行] 插件隐藏
         const hideButton = new ButtonComponent(actionBar.controlEl);
         hideButton.setIcon("eye-off");
+        this.bindLongPressTooltip(hideButton.buttonEl, this.manager.translator.t("菜单_隐藏插件_标题"));
         hideButton.onClick(async () => {
             const plugins: PluginManifest[] = Object.values(this.appPlugins.manifests);
             plugins.sort((item1, item2) => { return item1.name.localeCompare(item2.name); });
@@ -244,6 +276,7 @@ export class ManagerModal extends Modal {
         const reloadButton = new ButtonComponent(actionBar.controlEl);
         reloadButton.setIcon("refresh-ccw");
         reloadButton.setTooltip(this.manager.translator.t("管理器_重载插件_描述"));
+        this.bindLongPressTooltip(reloadButton.buttonEl, this.manager.translator.t("管理器_重载插件_描述"));
         reloadButton.onClick(async () => {
             new Notice("重新加载第三方插件");
             await this.appPlugins.loadManifests();
@@ -254,6 +287,7 @@ export class ManagerModal extends Modal {
         const disableButton = new ButtonComponent(actionBar.controlEl);
         disableButton.setIcon("square");
         disableButton.setTooltip(this.manager.translator.t("管理器_一键禁用_描述"));
+        this.bindLongPressTooltip(disableButton.buttonEl, this.manager.translator.t("管理器_一键禁用_描述"));
         disableButton.onClick(async () => {
             new DisableModal(this.app, this.manager, async () => {
                 for (const plugin of this.displayPlugins) {
@@ -280,6 +314,7 @@ export class ManagerModal extends Modal {
         const enableButton = new ButtonComponent(actionBar.controlEl);
         enableButton.setIcon("square-check");
         enableButton.setTooltip(this.manager.translator.t("管理器_一键启用_描述"));
+        this.bindLongPressTooltip(enableButton.buttonEl, this.manager.translator.t("管理器_一键启用_描述"));
         enableButton.onClick(async () => {
             new DisableModal(this.app, this.manager, async () => {
                 for (const plugin of this.displayPlugins) {
@@ -306,6 +341,7 @@ export class ManagerModal extends Modal {
         const editorButton = new ButtonComponent(actionBar.controlEl);
         this.editorMode ? editorButton.setIcon("pen-off") : editorButton.setIcon("pen");
         editorButton.setTooltip(this.manager.translator.t("管理器_编辑模式_描述"));
+        this.bindLongPressTooltip(editorButton.buttonEl, this.manager.translator.t("管理器_编辑模式_描述"));
         editorButton.onClick(() => {
             this.editorMode = !this.editorMode;
             this.editorMode ? editorButton.setIcon("pen-off") : editorButton.setIcon("pen");
@@ -321,16 +357,19 @@ export class ManagerModal extends Modal {
         const settingsButton = new ButtonComponent(actionBar.controlEl);
         settingsButton.setIcon("settings");
         settingsButton.setTooltip(this.manager.translator.t("管理器_插件设置_描述"));
+        this.bindLongPressTooltip(settingsButton.buttonEl, this.manager.translator.t("管理器_插件设置_描述"));
         settingsButton.onClick(() => {
             this.appSetting.open();
             this.appSetting.openTabById(this.manager.manifest.id);
             // this.close();
         });
+        updateActionState();
 
         // [操作行] 插件/主题安装模式
         const installToggle = new ButtonComponent(actionBar.controlEl);
         installToggle.setIcon("download");
         installToggle.setTooltip("安装插件 / 主题（GitHub 仓库）");
+        this.bindLongPressTooltip(installToggle.buttonEl, "安装插件 / 主题（GitHub 仓库）");
         installToggle.onClick(() => {
             this.installMode = !this.installMode;
             installToggle.setIcon(this.installMode ? "arrow-left" : "download");
@@ -364,8 +403,23 @@ export class ManagerModal extends Modal {
         }
 
         // [搜索行]
-        const searchBar = new Setting(this.titleEl).setClass("manager-bar__search").setName(this.manager.translator.t("通用_搜索_文本"));
+        const filterWrapper = this.titleEl.createDiv("manager-section manager-section--row");
+        const filterHeader = filterWrapper.createDiv("manager-section__header");
+        const filterArrow = filterHeader.createSpan({ text: this.filterCollapsed ? "▼" : "▲" });
+        filterArrow.addClass("manager-section__arrow");
+        filterHeader.createSpan({ text: this.manager.translator.t("通用_搜索_文本") });
+        const filterContent = filterWrapper.createDiv("manager-section__content");
+        filterContent.addClass("manager-section__content--filters");
+        const updateFilterState = () => {
+            filterContent.toggleClass("is-collapsed", this.filterCollapsed);
+            filterWrapper.toggleClass("is-collapsed", this.filterCollapsed);
+            filterArrow.setText(this.filterCollapsed ? "▼" : "▲");
+        };
+        filterHeader.onclick = () => { this.filterCollapsed = !this.filterCollapsed; updateFilterState(); };
+
+        const searchBar = new Setting(filterContent).setClass("manager-bar__search").setName("");
         this.searchBarEl = searchBar.settingEl;
+        updateFilterState();
 
         const filterOptions = {
             "all": this.manager.translator.t("筛选_全部_描述"),
@@ -448,7 +502,7 @@ export class ManagerModal extends Modal {
         this.displayPlugins = [];
         for (const plugin of plugins) {
             const ManagerPlugin = this.manager.settings.Plugins.find((mp) => mp.id === plugin.id);
-            const pluginDir = path.join(this.basePath, plugin.dir ? plugin.dir : "");
+            const pluginDir = normalizePath(`${this.app.vault.configDir}/${plugin.dir ? plugin.dir : ""}`);
             // 插件是否开启
             const isEnabled = this.settings.DELAY ? ManagerPlugin?.enabled : this.appPlugins.enabledPlugins.has(plugin.id);
             if (ManagerPlugin) {
@@ -1018,6 +1072,18 @@ export class ManagerModal extends Modal {
         } else {
             this.showData();
         }
+    }
+
+    private bindLongPressTooltip(el: HTMLElement | undefined, text?: string) {
+        if (!el || !text) return;
+        let timer: number | undefined;
+        const show = () => { new Notice(text, 1500); };
+        const clear = () => { if (timer) window.clearTimeout(timer); timer = undefined; };
+        el.addEventListener("touchstart", () => {
+            timer = window.setTimeout(show, 500);
+        });
+        el.addEventListener("touchend", clear);
+        el.addEventListener("touchcancel", clear);
     }
 
     public async reloadShowData() {

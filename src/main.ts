@@ -6,10 +6,8 @@ import { ManagerModal } from './modal/manager-modal';
 import Commands from './command';
 import Agreement from 'src/agreement';
 import { RepoResolver, ensureBpmTagExists, BPM_TAG_ID } from './repo-resolver';
-import { normalizePath, TFile, stringifyYaml, parseYaml, EventRef, Notice } from 'obsidian';
+import { normalizePath, TFile, stringifyYaml, parseYaml, EventRef, Notice, Platform } from 'obsidian';
 import { ManagerPlugin } from './data/types';
-import * as path from 'path';
-import { writeFile, readFile } from 'fs/promises';
 
 export default class Manager extends Plugin {
     public settings: ManagerSettings;
@@ -75,9 +73,7 @@ export default class Manager extends Plugin {
 
     public getExportDir(): string | null {
         if (!this.settings.EXPORT_DIR) return null;
-        const base = (this.app.vault.adapter as any).getBasePath ? (this.app.vault.adapter as any).getBasePath() : "";
-        const dir = normalizePath(path.join(base, this.settings.EXPORT_DIR));
-        return dir;
+        return normalizePath(this.settings.EXPORT_DIR);
     }
 
     public setupExportWatcher() {
@@ -172,7 +168,6 @@ export default class Manager extends Plugin {
             }
             const fileName = `${this.exportFileName(mp)}.md`;
             const vaultPath = normalizePath(`${vaultRelativeDir}/${fileName}`);
-            const fullPath = normalizePath(path.join(dir, fileName));
             let body = "\n\n下面是正文, 用户可以随便写";
             if (await adapter.exists(vaultPath)) {
                 const old = await adapter.read(vaultPath);

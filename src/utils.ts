@@ -1,8 +1,5 @@
 import { Notice, Platform } from 'obsidian';
-import { exec } from 'child_process';
 import Manager from 'main';
-import { existsSync } from 'fs';
-import * as path from 'path';
 
 /**
  * 打开文件或文件夹的操作系统命令。
@@ -12,14 +9,27 @@ import * as path from 'path';
  * 如果操作成功，显示成功通知；如果失败，显示错误通知。
  */
 export const managerOpen = (dir: string, manager: Manager) => {
-	if (Platform.isDesktop) {
-		exec(`start "" "${dir}"`, (error) => {
-			if (error) { new Notice(manager.translator.t('通用_失败_文本')); } else { new Notice(manager.translator.t('通用_成功_文本')); }
-		});
+	if (Platform.isMobileApp) {
+		new Notice("移动端暂不支持打开文件夹，请在桌面端操作。");
+		return;
 	}
-	if (Platform.isMacOS) {
-		exec(`open ${dir}`, (error) => {
-			if (error) { new Notice(manager.translator.t('通用_失败_文本')); } else { new Notice(manager.translator.t('通用_成功_文本')); }
-		});
+	try {
+		// 延迟加载避免移动端加载 Node 模块
+		// eslint-disable-next-line @typescript-eslint/no-var-requires
+		const { exec } = require('child_process');
+		if (Platform.isDesktop || Platform.isWin) {
+			exec(`start "" "${dir}"`, (error: any) => {
+				if (error) { new Notice(manager.translator.t('通用_失败_文本')); } else { new Notice(manager.translator.t('通用_成功_文本')); }
+			});
+			return;
+		}
+		if (Platform.isMacOS) {
+			exec(`open ${dir}`, (error: any) => {
+				if (error) { new Notice(manager.translator.t('通用_失败_文本')); } else { new Notice(manager.translator.t('通用_成功_文本')); }
+			});
+		}
+	} catch (e) {
+		console.error("打开目录失败", e);
+		new Notice(manager.translator.t('通用_失败_文本'));
 	}
 }
