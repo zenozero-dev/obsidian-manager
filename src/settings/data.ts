@@ -14,6 +14,8 @@ export interface ManagerSettings {
     LANGUAGE: string;
     // 语言是否已按系统初始化过（用于新老版本兼容）
     LANGUAGE_INITIALIZED?: boolean;
+    // 已执行的迁移版本
+    MIGRATION_VERSION?: string;
     // 居中
     CENTER: boolean;
     // 样式
@@ -60,6 +62,7 @@ export const DEFAULT_SETTINGS: ManagerSettings = {
 
     LANGUAGE: "",
     LANGUAGE_INITIALIZED: false,
+    MIGRATION_VERSION: "",
     CENTER: false,
     ITEM_STYLE: "alwaysExpand",
     GROUP_STYLE: "a",

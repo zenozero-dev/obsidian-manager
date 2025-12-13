@@ -8,6 +8,7 @@ import Agreement from 'src/agreement';
 import { RepoResolver, ensureBpmTagExists, BPM_TAG_ID } from './repo-resolver';
 import { normalizePath, TFile, stringifyYaml, parseYaml, EventRef, Notice, Platform } from 'obsidian';
 import { ManagerPlugin } from './data/types';
+import { runMigrations } from './migrations';
 
 export default class Manager extends Plugin {
     public settings: ManagerSettings;
@@ -30,6 +31,7 @@ export default class Manager extends Plugin {
 
         console.log(`%c ${this.manifest.name} %c v${this.manifest.version} `, `padding: 2px; border-radius: 2px 0 0 2px; color: #fff; background: #5B5B5B;`, `padding: 2px; border-radius: 0 2px 2px 0; color: #fff; background: #409EFF;`);
         await this.loadSettings();
+        await runMigrations(this);
         // 首次安装或未设置语言时，自动跟随 Obsidian 语言
         if (!this.settings.LANGUAGE_INITIALIZED || !this.settings.LANGUAGE) {
             this.settings.LANGUAGE = this.getAppLanguage();
@@ -435,7 +437,7 @@ export default class Manager extends Plugin {
     }
 
     // 获取 Obsidian 当前语言（兼容旧版类型定义）
-    private getAppLanguage(): string {
+    public getAppLanguage(): string {
         // 优先使用 app.i18n.locale / language
         // @ts-ignore
         const anyApp = this.app as any;
