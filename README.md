@@ -1,30 +1,95 @@
-<div align="center">
-	<h1>Better Plugins Manager<h1>
-	<img src="https://img.shields.io/github/downloads/0011000000110010/obsidian-manager/total" alt="GitHub Downloads (all assets, all releases)" />
-	<img src="https://img.shields.io/github/v/release/0011000000110010/obsidian-manager" alt="GitHub release (latest by date)" />
-	<img src="https://img.shields.io/github/last-commit/0011000000110010/obsidian-manager" alt="GitHub last commit" />
-	<img src="https://img.shields.io/github/issues/0011000000110010/obsidian-manager" alt="GitHub issues" />
-	<img src="https://img.shields.io/github/stars/0011000000110010/obsidian-manager?style=social" alt="GitHub stars" />
-</div>
+# Better Plugins Manager
 
-<div align="center">
-  <img src="https://github.com/0011000000110010/obsidian-manager/blob/main/img/index.png" alt="Obsidian Iconize">
-</div>
+[简体中文](docs/README_CN.md)
 
+![GitHub Downloads](https://img.shields.io/github/downloads/zenozero-dev/obsidian-manager/total)
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/zenozero-dev/obsidian-manager)
+![Last commit](https://img.shields.io/github/last-commit/zenozero-dev/obsidian-manager)
+![Issues](https://img.shields.io/github/issues/zenozero-dev/obsidian-manager)
+![Stars](https://img.shields.io/github/stars/zenozero-dev/obsidian-manager?style=social)
 
-[简体中文](https://github.com/0011000000110010/obsidian-manager/blob/main/README_CN.md) | English
+![Screenshot](img/index.png)
 
-In the ecosystem of Obsidian, plugins play a key role in expanding functionality and enhancing workflow efficiency. Although Obsidian provides basic plugin management capabilities, for users who pursue higher management efficiency and personalized experiences, these may not be sufficient. Better Plugins Manager (BPM) is born out of this need, aiming to surpass basic functionalities and offer a more refined and powerful plugin management solution.
+## What is BPM?
 
-## Features
+Better Plugins Manager goes beyond Obsidian’s built-in manager: delay-start plugins, batch enable/disable, organize with groups and tags, rename and annotate, install from GitHub with release picker, export data for Base workflows, and keep a mobile-friendly UI.
 
-- **Plugin Delayed Startup**: BPM allows you to set personalized delay times for each plugin, reducing startup time and enhancing application performance.
-- **Intuitive and User-Friendly Interface**: BPM's clear and intuitive interface design simplifies the plugin management and configuration process, making your operations more intuitive and convenient.
-- **Customizable Interface**: BPM offers personalized settings, allowing you to customize the interface according to your preferences and workflow.
-- **Convenient Directory Access**: BPM lets you access the plugin directory with one click, making it easy to manage and edit at a deeper level, meeting your advanced management needs.
-- **Quick Plugin Toggle**: BPM simplifies the process of enabling and disabling plugins with one-click operations, allowing you to respond to changes quickly without going through complicated setup steps.
-- **Plugin Renaming**: BPM allows you to rename plugins based on their actual function or personal preference, making your plugin list more intuitive and personalized.
-- **Description Editing**: BPM allows you to edit plugin descriptions based on their actual use or personal experience, making your plugin list more aligned with your personal workflow.
-- **Group Management**: BPM introduces group management functionality, allowing you to logically group plugins for easier management 和 quick access, enhancing work efficiency.
-- **Tagging Management**: BPM enables you to add personalized tags to plugins, whether by function, frequency of use, or personal categorization, making your plugin management more organized.
-- **Advanced Search**: BPM offers an advanced search feature, allowing you to quickly locate the plugins you need, whether by name, group, or tag, making it easy to find them.
+## Highlights
+
+- **Fast control & batching**: toggle all plugins, enable/disable by group, and per-plugin quick switches.
+- **Organize & document**: custom names/descriptions, groups, tags (auto “bpm-install” tag for BPM installs), searchable filters.
+- **GitHub-aware install**: paste `user/repo` or full URL, pick releases like BRAT, cache repo mapping, and jump to repo from each card.
+- **Delay & performance**: start plugins with per-profile delays.
+- **Base-friendly export**: write plugin metadata to Markdown frontmatter and sync back (safe read-only/write tags).
+- **Mobile ready**: collapsible action/search bars, long-press tooltips, responsive grid; desktop UI remains unchanged.
+- **GitHub token support**: optional PAT to avoid rate limits when fetching releases.
+
+## Installation
+
+1) **Manual**  
+Download the latest release assets (`main.js`, `manifest.json`, `styles.css`) and copy to `<vault>/.obsidian/plugins/better-plugins-manager/`.
+
+2) **BRAT**  
+Use BRAT → “Add Beta plugin” → `zenozero-dev/obsidian-manager` → install.
+
+## Usage
+
+- Open from the ribbon “Manager” icon or command palette (`Manage plugins`).
+- Cards let you rename, edit descriptions/notes, tag/group, set delay, open repo/folder, delete, and toggle enabled.
+- Filters: by state, group, tag, delay, and keyword search.
+- Actions: batch enable/disable all or by group, reload plugins, install from GitHub with release selection.
+
+## Export to Obsidian Base
+
+1) In settings, set **Plugin info export directory** (folder inside your vault).  
+2) BPM exports one Markdown per plugin and watches the folder for edits.  
+3) Read/Write rules: `bpm_rw_*` are editable; `bpm_ro_*` are read-only; `bpm_rwc_repo` is editable only when the plugin is not BPM-installed and has no official repo mapping.
+
+Frontmatter schema (auto-generated):
+
+```yaml
+---
+bpm_ro_id: some-plugin
+bpm_rw_name: Custom name
+bpm_rw_desc: Custom description
+bpm_rw_note: Personal note
+bpm_rw_enabled: true
+bpm_rwc_repo: user/repo
+bpm_ro_group: group-id
+bpm_ro_tags:
+  - tag-a
+  - bpm-install
+bpm_ro_delay: delay-id
+bpm_ro_installed_via_bpm: true
+bpm_ro_updated: 2024-12-12T10:00:00Z
+---
+
+Body section: you can edit or replace this content.
+```
+
+## Settings you’ll care about
+
+- **Delay profiles**: create presets and assign per plugin.  
+- **Hide BPM tag**: keep the auto “bpm-install” tag but hide it in UI.  
+- **GitHub API token**: raise rate limits for release fetching.  
+- **Fade inactive plugins**: visually de-emphasize disabled items.  
+- **Export notices**: configurable hint text for exported files.
+
+## Commands
+
+- Open manager panel.  
+- (Optional) per-plugin toggle commands.  
+- (Optional) enable/disable all plugins in a group.
+
+## Compatibility
+
+- Works on desktop and mobile (Android/iOS).  
+- Uses platform detection to apply the compact mobile layout while keeping the desktop layout unchanged.
+
+## Contributing
+
+Issues and PRs are welcome. For bugs, share console logs and reproduction steps; for features, open a discussion/issue first.
+
+## License
+
+[MIT](LICENSE)
