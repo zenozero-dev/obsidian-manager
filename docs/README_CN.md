@@ -26,11 +26,7 @@ Better Plugins Manager 提供比原生插件管理更强的体验：延迟启动
 
 ## 安装
 
-1) **手动**  
-到 Releases 下载 `main.js`、`manifest.json`、`styles.css`，放到 `<库>/.obsidian/plugins/better-plugins-manager/`。
-
-2) **BRAT**  
-BRAT → “Add Beta plugin” → `zenozero-dev/obsidian-manager` → 安装。
+本插件已经上架Obsidian官方市场。
 
 ## 使用
 

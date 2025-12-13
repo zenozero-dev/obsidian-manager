@@ -26,11 +26,7 @@ Better Plugins Manager goes beyond Obsidian’s built-in manager: delay-start pl
 
 ## Installation
 
-1) **Manual**  
-Download the latest release assets (`main.js`, `manifest.json`, `styles.css`) and copy to `<vault>/.obsidian/plugins/better-plugins-manager/`.
-
-2) **BRAT**  
-Use BRAT → “Add Beta plugin” → `zenozero-dev/obsidian-manager` → install.
+This plugin is now available on the Obsidian official marketplace.
 
 ## Usage
 
