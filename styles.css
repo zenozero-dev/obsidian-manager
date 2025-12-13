@@ -8,7 +8,7 @@
 }
 
 body {
-    --item-inactive: 0.75;
+    --item-inactive: 0.5;
 }
 
 body.theme-dark {
@@ -380,7 +380,8 @@ body.theme-dark {
 }
 
 .manager-item.inactive {
-    filter: brightness(var(--item-inactive));
+    opacity: var(--item-inactive);
+    filter: none;
 }
 
 /* 目录项 名称行*/

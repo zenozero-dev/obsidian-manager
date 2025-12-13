@@ -35,6 +35,18 @@ export default {
     卸载_取消: 'Cancelar',
     卸载_通知_一: 'Desinstalado correctamente',
 
+    通用_保存_文本: 'Guardar configuración',
+    导出_正文提示: 'Cuerpo: puedes editar o reemplazar este contenido.',
+    设置_基础设置_隐藏BPM标签_标题: 'Ocultar etiqueta “bpm install”',
+    设置_基础设置_隐藏BPM标签_描述: 'Oculta la etiqueta añadida automáticamente en la lista (solo visual).',
+    设置_基础设置_导出目录_标题: 'Directorio de exportación de información',
+    设置_基础设置_导出目录_描述: 'Ruta relativa del vault para exportar info BPM (Base). Se aplica al pulsar “Guardar configuración”.',
+    设置_基础设置_导出目录_示例: 'p.ej.: BPM-Export',
+    设置_基础设置_导出提示_标题: 'Convenciones frontmatter',
+    设置_基础设置_导出提示_描述: 'Solo lectura: bpm_ro_id/group/tags/delay/installed_via_bpm/updated; editable: bpm_rw_name/desc/note/enabled; condicional: bpm_rwc_repo (sin coincidencia oficial y no instalado por BPM).',
+    设置_基础设置_GITHUB_TOKEN_标题: 'GitHub API Token',
+    设置_基础设置_GITHUB_TOKEN_描述: 'Para descargar plugins/temas de GitHub y reducir límites de API. Opcional.',
+
     设置_基础设置_前缀: 'Configuración básica',
     设置_分组设置_前缀: 'Grupo',
     设置_标签设置_前缀: 'Etiqueta',

@@ -35,6 +35,15 @@ export default {
     卸载_取消: 'Annuler',
     卸载_通知_一: 'Désinstallé avec succès',
 
+    通用_保存_文本: 'Enregistrer les paramètres',
+    导出_正文提示: 'Zone de contenu : vous pouvez modifier ou remplacer ce contenu.',
+    设置_基础设置_隐藏BPM标签_标题: 'Masquer le tag “bpm install”',
+    设置_基础设置_隐藏BPM标签_描述: 'Masque le tag ajouté automatiquement dans la liste (affichage uniquement).',
+    设置_基础设置_导出目录_标题: 'Répertoire d’export des infos',
+    设置_基础设置_导出目录_描述: 'Chemin relatif du coffre pour exporter les infos BPM (Base). Appliqué en cliquant sur “Enregistrer les paramètres”.',
+    设置_基础设置_导出提示_标题: 'Conventions frontmatter',
+    设置_基础设置_导出提示_描述: 'Lecture seule : bpm_ro_id/group/tags/delay/installed_via_bpm/updated ; éditable : bpm_rw_name/desc/note/enabled ; conditionnel : bpm_rwc_repo (sans correspondance officielle et non installé par BPM).',
+
     设置_基础设置_前缀: 'Paramètres de base',
     设置_分组设置_前缀: 'Groupe',
     设置_标签设置_前缀: 'Tag',

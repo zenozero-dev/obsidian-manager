@@ -168,7 +168,7 @@ export default class Manager extends Plugin {
             }
             const fileName = `${this.exportFileName(mp)}.md`;
             const vaultPath = normalizePath(`${vaultRelativeDir}/${fileName}`);
-            let body = "\n\n下面是正文, 用户可以随便写";
+            let body = `\n\n${this.translator.t('导出_正文提示')}`;
             if (await adapter.exists(vaultPath)) {
                 const old = await adapter.read(vaultPath);
                 const parsed = this.parseFrontmatter(old);

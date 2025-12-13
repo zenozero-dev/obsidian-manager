@@ -67,8 +67,8 @@ export default class ManagerBasis extends BaseSetting {
         });
 
         const hideBpmTagBar = new Setting(this.containerEl)
-            .setName("隐藏“bpm安装”标签")
-            .setDesc("开启后列表不显示自动添加的 bpm 安装标签，仅隐藏展示。");
+            .setName(this.manager.translator.t('设置_基础设置_隐藏BPM标签_标题'))
+            .setDesc(this.manager.translator.t('设置_基础设置_隐藏BPM标签_描述'));
         const hideBpmTagToggle = new ToggleComponent(hideBpmTagBar.controlEl);
         hideBpmTagToggle.setValue(this.settings.HIDE_BPM_TAG);
         hideBpmTagToggle.onChange((value) => {
@@ -79,10 +79,10 @@ export default class ManagerBasis extends BaseSetting {
 
         // 导出目录与前置提示
         const exportDirBar = new Setting(this.containerEl)
-            .setName("插件信息导出目录")
-            .setDesc("相对库路径的文件夹，用于导出 BPM 插件信息（支持 Base）。不会在输入时立刻写入，需点击“保存设置”。");
+            .setName(this.manager.translator.t('设置_基础设置_导出目录_标题'))
+            .setDesc(this.manager.translator.t('设置_基础设置_导出目录_描述'));
         const exportDirInput = new TextComponent(exportDirBar.controlEl);
-        exportDirInput.setPlaceholder("例如: BPM-Export");
+        exportDirInput.setPlaceholder(this.manager.translator.t('设置_基础设置_导出目录_示例'));
         exportDirInput.setValue(this.settings.EXPORT_DIR || "");
 
         exportDirInput.inputEl.addEventListener("blur", () => {
@@ -90,7 +90,7 @@ export default class ManagerBasis extends BaseSetting {
         });
 
         exportDirBar.addButton((btn) => {
-            btn.setButtonText("保存设置").setCta();
+            btn.setButtonText(this.manager.translator.t('通用_保存_文本')).setCta();
             btn.onClick(() => {
                 this.settings.EXPORT_DIR = exportDirInput.getValue().trim();
                 this.manager.saveSettings();
@@ -100,12 +100,12 @@ export default class ManagerBasis extends BaseSetting {
         });
 
         new Setting(this.containerEl)
-            .setName("前置约定（frontmatter 键名）")
-            .setDesc("只读: bpm_ro_id/group/tags/delay/installed_via_bpm/updated；可写: bpm_rw_name/desc/note/enabled；条件可写: bpm_rwc_repo（仅官方未匹配且非 BPM 安装时）。");
+            .setName(this.manager.translator.t('设置_基础设置_导出提示_标题'))
+            .setDesc(this.manager.translator.t('设置_基础设置_导出提示_描述'));
 
         const tokenBar = new Setting(this.containerEl)
-            .setName("GitHub API Token")
-            .setDesc("用于从 GitHub 下载插件/主题，避免频繁的 API 限流。可留空。");
+            .setName(this.manager.translator.t('设置_基础设置_GITHUB_TOKEN_标题'))
+            .setDesc(this.manager.translator.t('设置_基础设置_GITHUB_TOKEN_描述'));
         const tokenInput = new TextComponent(tokenBar.controlEl);
         tokenInput.setPlaceholder("ghp_xxx");
         tokenInput.setValue(this.settings.GITHUB_TOKEN || "");
