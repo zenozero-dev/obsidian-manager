@@ -200,9 +200,8 @@ export class ManagerModal extends Modal {
         const githubButton = new ButtonComponent(actionBar.controlEl);
         githubButton.setIcon("github");
         githubButton.setTooltip(this.manager.translator.t("管理器_GITHUB_描述"));
-        githubButton.setCta();
         this.bindLongPressTooltip(githubButton.buttonEl, this.manager.translator.t("管理器_GITHUB_描述"));
-        githubButton.onClick(() => { window.open(this.manager.manifest.authorUrl) });
+        githubButton.onClick(() => { window.open("https://github.com/zenozero-dev/obsidian-manager"); });
         // [操作行] Github
         const tutorialButton = new ButtonComponent(actionBar.controlEl);
         tutorialButton.setIcon("book-open");
@@ -214,7 +213,6 @@ export class ManagerModal extends Modal {
         const updateButton = new ButtonComponent(actionBar.controlEl);
         updateButton.setIcon("rss");
         updateButton.setTooltip(this.manager.translator.t("管理器_检查更新_描述"));
-        updateButton.setCta();
         this.bindLongPressTooltip(updateButton.buttonEl, this.manager.translator.t("管理器_检查更新_描述"));
         updateButton.onClick(async () => {
             try {
