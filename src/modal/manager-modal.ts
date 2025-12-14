@@ -269,7 +269,9 @@ export class ManagerModal extends Modal {
         // [操作行] 插件隐藏
         const hideButton = new ButtonComponent(actionBar.controlEl);
         hideButton.setIcon("eye-off");
-        this.bindLongPressTooltip(hideButton.buttonEl, this.manager.translator.t("菜单_隐藏插件_标题"));
+        const hideTooltip = this.manager.translator.t("菜单_隐藏插件_标题");
+        hideButton.setTooltip(hideTooltip);
+        this.bindLongPressTooltip(hideButton.buttonEl, hideTooltip);
         hideButton.onClick(async () => {
             const plugins: PluginManifest[] = Object.values(this.appPlugins.manifests);
             plugins.sort((item1, item2) => { return item1.name.localeCompare(item2.name); });
@@ -412,12 +414,12 @@ export class ManagerModal extends Modal {
             });
         }
 
-        // [搜索行]
+        // [过滤行]
         const filterWrapper = this.titleEl.createDiv("manager-section manager-section--row");
         const filterHeader = filterWrapper.createDiv("manager-section__header");
         const filterArrow = filterHeader.createSpan({ text: this.filterCollapsed ? "▼" : "▲" });
         filterArrow.addClass("manager-section__arrow");
-        filterHeader.createSpan({ text: this.manager.translator.t("通用_搜索_文本") });
+        filterHeader.createSpan({ text: this.manager.translator.t("通用_过滤_文本") });
         const filterContent = filterWrapper.createDiv("manager-section__content");
         filterContent.addClass("manager-section__content--filters");
         const updateFilterState = () => {
@@ -432,7 +434,7 @@ export class ManagerModal extends Modal {
         updateFilterState();
 
         const filterOptions = {
-            "all": this.manager.translator.t("筛选_全部_描述"),
+            "all": this.manager.translator.t("筛选_状态_全部"),
             "enabled": this.manager.translator.t("筛选_仅启用_描述"),
             "disabled": this.manager.translator.t("筛选_仅禁用_描述"),
             "grouped": this.manager.translator.t("筛选_已分组_描述"),
@@ -451,9 +453,9 @@ export class ManagerModal extends Modal {
         });
 
 
-        // [搜索行] 分组选择列表
+        // [过滤行] 分组选择列表
         const groupCounts = this.settings.Plugins.reduce((acc: { [key: string]: number }, plugin) => { const groupId = plugin.group || ""; acc[groupId] = (acc[groupId] || 0) + 1; return acc; }, { "": 0 });
-        const groups = this.settings.GROUPS.reduce((acc: { [key: string]: string }, item) => { acc[item.id] = `${item.name} [${groupCounts[item.id] || 0}]`; return acc; }, { "": this.manager.translator.t("通用_无分组_文本") });
+        const groups = this.settings.GROUPS.reduce((acc: { [key: string]: string }, item) => { acc[item.id] = `${item.name} [${groupCounts[item.id] || 0}]`; return acc; }, { "": this.manager.translator.t("筛选_分组_全部") });
         this.groupDropdown = new DropdownComponent(searchBar.controlEl);
         this.groupDropdown.addOptions(groups);
         this.groupDropdown.setValue(this.settings.PERSISTENCE ? this.settings.FILTER_GROUP : this.group);
@@ -467,9 +469,9 @@ export class ManagerModal extends Modal {
             this.reloadShowData();
         });
 
-        // [搜索行] 标签选择列表
+        // [过滤行] 标签选择列表
         const tagCounts: { [key: string]: number } = this.settings.Plugins.reduce((acc, plugin) => { plugin.tags.forEach((tag) => { acc[tag] = (acc[tag] || 0) + 1; }); return acc; }, {} as { [key: string]: number });
-        const tags = this.settings.TAGS.reduce((acc: { [key: string]: string }, item) => { acc[item.id] = `${item.name} [${tagCounts[item.id] || 0}]`; return acc; }, { "": this.manager.translator.t("通用_无标签_文本") });
+        const tags = this.settings.TAGS.reduce((acc: { [key: string]: string }, item) => { acc[item.id] = `${item.name} [${tagCounts[item.id] || 0}]`; return acc; }, { "": this.manager.translator.t("筛选_标签_全部") });
         this.tagDropdown = new DropdownComponent(searchBar.controlEl);
         this.tagDropdown.addOptions(tags);
         this.tagDropdown.setValue(this.settings.PERSISTENCE ? this.settings.FILTER_TAG : this.tag);
@@ -483,10 +485,10 @@ export class ManagerModal extends Modal {
             this.reloadShowData();
         });
 
-        // [搜索行] 延迟选择列表
+        // [过滤行] 延迟选择列表
         if (this.settings.DELAY) {
             const delayCounts = this.settings.Plugins.reduce((acc: { [key: string]: number }, plugin) => { const delay = plugin.delay || ""; acc[delay] = (acc[delay] || 0) + 1; return acc; }, { "": 0 });
-            const delays = this.settings.DELAYS.reduce((acc: { [key: string]: string }, item) => { acc[item.id] = `${item.name} (${delayCounts[item.id] || 0})`; return acc; }, { "": this.manager.translator.t("通用_无延迟_文本") });
+            const delays = this.settings.DELAYS.reduce((acc: { [key: string]: string }, item) => { acc[item.id] = `${item.name} (${item.time}s) [${delayCounts[item.id] || 0}]`; return acc; }, { "": this.manager.translator.t("筛选_延迟_全部") });
             this.delayDropdown = new DropdownComponent(searchBar.controlEl);
             this.delayDropdown.addOptions(delays);
             this.delayDropdown.setValue(this.settings.PERSISTENCE ? this.settings.FILTER_DELAY : this.delay);
@@ -1158,21 +1160,24 @@ export class ManagerModal extends Modal {
     private refreshFilterOptions() {
         // 重新计算并刷新分组/标签/延迟下拉的计数
         if (this.groupDropdown) {
+            const currentGroup = this.groupDropdown.selectEl.value ?? (this.settings.PERSISTENCE ? this.settings.FILTER_GROUP : this.group);
             const groupCounts = this.settings.Plugins.reduce((acc: { [key: string]: number }, plugin) => { const groupId = plugin.group || ""; acc[groupId] = (acc[groupId] || 0) + 1; return acc; }, { "": 0 });
-            const groups = this.settings.GROUPS.reduce((acc: { [key: string]: string }, item) => { acc[item.id] = `${item.name} [${groupCounts[item.id] || 0}]`; return acc; }, { "": this.manager.translator.t("通用_无分组_文本") });
-            const current = this.settings.PERSISTENCE ? this.settings.FILTER_GROUP : this.group;
+            const groups = this.settings.GROUPS.reduce((acc: { [key: string]: string }, item) => { acc[item.id] = `${item.name} [${groupCounts[item.id] || 0}]`; return acc; }, { "": this.manager.translator.t("筛选_分组_全部") });
+            const current = this.settings.PERSISTENCE ? this.settings.FILTER_GROUP : currentGroup;
             this.resetDropdown(this.groupDropdown, groups, current);
         }
         if (this.tagDropdown) {
+            const currentTag = this.tagDropdown.selectEl.value ?? (this.settings.PERSISTENCE ? this.settings.FILTER_TAG : this.tag);
             const tagCounts: { [key: string]: number } = this.settings.Plugins.reduce((acc, plugin) => { plugin.tags.forEach((tag) => { acc[tag] = (acc[tag] || 0) + 1; }); return acc; }, {} as { [key: string]: number });
-            const tags = this.settings.TAGS.reduce((acc: { [key: string]: string }, item) => { acc[item.id] = `${item.name} [${tagCounts[item.id] || 0}]`; return acc; }, { "": this.manager.translator.t("通用_无标签_文本") });
-            const current = this.settings.PERSISTENCE ? this.settings.FILTER_TAG : this.tag;
+            const tags = this.settings.TAGS.reduce((acc: { [key: string]: string }, item) => { acc[item.id] = `${item.name} [${tagCounts[item.id] || 0}]`; return acc; }, { "": this.manager.translator.t("筛选_标签_全部") });
+            const current = this.settings.PERSISTENCE ? this.settings.FILTER_TAG : currentTag;
             this.resetDropdown(this.tagDropdown, tags, current);
         }
         if (this.settings.DELAY && this.delayDropdown) {
+            const currentDelay = this.delayDropdown.selectEl.value ?? (this.settings.PERSISTENCE ? this.settings.FILTER_DELAY : this.delay);
             const delayCounts = this.settings.Plugins.reduce((acc: { [key: string]: number }, plugin) => { const delay = plugin.delay || ""; acc[delay] = (acc[delay] || 0) + 1; return acc; }, { "": 0 });
-            const delays = this.settings.DELAYS.reduce((acc: { [key: string]: string }, item) => { acc[item.id] = `${item.name} (${delayCounts[item.id] || 0})`; return acc; }, { "": this.manager.translator.t("通用_无延迟_文本") });
-            const current = this.settings.PERSISTENCE ? this.settings.FILTER_DELAY : this.delay;
+            const delays = this.settings.DELAYS.reduce((acc: { [key: string]: string }, item) => { acc[item.id] = `${item.name} (${delayCounts[item.id] || 0})`; return acc; }, { "": this.manager.translator.t("筛选_延迟_全部") });
+            const current = this.settings.PERSISTENCE ? this.settings.FILTER_DELAY : currentDelay;
             this.resetDropdown(this.delayDropdown, delays, current);
         }
         this.renderContent();
@@ -1185,6 +1190,8 @@ export class ManagerModal extends Modal {
     }
 
     public async onOpen() {
+        // 在面板打开时暂停导出目录的文件监听，避免监听回调触发频繁刷新
+        this.manager.pauseExportWatcher();
         await this.showHead();
         await this.showData();
         this.searchEl.inputEl.focus();
@@ -1202,6 +1209,8 @@ export class ManagerModal extends Modal {
     public async onClose() {
         this.contentEl.empty();
         if (this.modalContainer) this.modalContainer.removeClass("manager-container--editing");
+        // 关闭面板后恢复导出目录的文件监听
+        this.manager.resumeExportWatcher();
     }
 
     private applyEditingStyle() {

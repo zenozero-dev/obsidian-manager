@@ -9,6 +9,7 @@ export default {
     通用_无分组_文本: 'Sin grupo',
     通用_无标签_文本: 'Sin etiqueta',
     通用_无延迟_文本: 'Sin retraso',
+    通用_过滤_文本: 'Filtrar',
     通用_总计_文本: 'Total',
     通用_启用_文本: 'Habilitar',
     通用_禁用_文本: 'Deshabilitar',
@@ -94,6 +95,10 @@ export default {
     设置_提示_一_描述: 'Debido a capacidades limitadas, no puedo solucionar este problema. Por favor, deshabilite el inicio con retraso para resolver todos los problemas de conflicto.',
     通知_检测更新中: 'Comprobando actualizaciones…',
     通知_可更新数量: '{count} plugins tienen actualizaciones disponibles',
+    筛选_状态_全部: 'Estado: Todos',
+    筛选_分组_全部: 'Grupos: Todos',
+    筛选_标签_全部: 'Etiquetas: Todas',
+    筛选_延迟_全部: 'Retraso: Todos',
 
     命令_管理面板_描述: 'Abrir el administrador de plugins',
     管理器_下载更新_描述: 'Descargar actualización (elige versión, incl. pre-release)',

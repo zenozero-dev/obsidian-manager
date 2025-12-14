@@ -35,6 +35,7 @@ export default class Manager extends Plugin {
     public agreement: Agreement;
     public repoResolver: RepoResolver;
     private exportWatcher: EventRef | null = null;
+    private exportWatcherPaused = false;
     private exportWriting = false;
     private toggleNotice: Notice | null = null;
     public updateStatus: Record<string, UpdateStatus> = {};
@@ -191,6 +192,26 @@ export default class Manager extends Plugin {
     public getExportDir(): string | null {
         if (!this.settings.EXPORT_DIR) return null;
         return normalizePath(this.settings.EXPORT_DIR);
+    }
+
+    public pauseExportWatcher() {
+        if (this.exportWatcher) {
+            this.app.vault.offref(this.exportWatcher);
+            this.exportWatcher = null;
+        }
+        this.exportWatcherPaused = true;
+    }
+
+    public resumeExportWatcher() {
+        if (!this.settings.EXPORT_DIR) {
+            this.exportWatcherPaused = false;
+            return;
+        }
+        // 仅在曾暂停时重新挂载，避免重复注册
+        if (this.exportWatcherPaused) {
+            this.setupExportWatcher();
+        }
+        this.exportWatcherPaused = false;
     }
 
     public setupExportWatcher() {

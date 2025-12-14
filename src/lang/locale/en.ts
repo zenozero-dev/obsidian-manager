@@ -9,6 +9,7 @@ export default {
     通用_无分组_文本: 'ALL',
     通用_无标签_文本: 'ALL',
     通用_无延迟_文本: 'No Delay',
+    通用_过滤_文本: 'Filter',
     通用_总计_文本: 'Total',
     通用_启用_文本: 'Enable',
     通用_禁用_文本: 'Disable',
@@ -50,6 +51,10 @@ export default {
     筛选_有标签_描述: 'With tags',
     筛选_无标签_描述: 'Without tags',
     筛选_有笔记_描述: 'With notes',
+    筛选_状态_全部: 'Status: All',
+    筛选_分组_全部: 'Groups: All',
+    筛选_标签_全部: 'Tags: All',
+    筛选_延迟_全部: 'Delay: All',
 
     管理器_GITHUB_描述: 'Visit the author\'s GitHub page to view project details, update logs, participate in discussions, and contribute code.',
     管理器_视频教程_描述: 'Access video tutorials',
