@@ -815,7 +815,7 @@ export class ManagerModal extends Modal {
                 versionWrap.appendChild(version);
                 const updateInfo = this.manager.updateStatus?.[plugin.id];
                 if (updateInfo?.hasUpdate && updateInfo.remoteVersion) {
-                    const arrow = createSpan({ text: " → ", cls: ["manager-item__name-remote-arrow"] });
+                    const arrow = createSpan({ text: "→", cls: ["manager-item__name-remote-arrow"] });
                     versionWrap.appendChild(arrow);
                     const remote = createSpan({ text: `${updateInfo.remoteVersion}`, cls: ["manager-item__name-remote"] });
                     versionWrap.appendChild(remote);
