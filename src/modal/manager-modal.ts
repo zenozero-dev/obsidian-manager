@@ -1139,18 +1139,18 @@ export class ManagerModal extends Modal {
     }
 
     public async reloadShowData() {
-        console.log("[BPM] reloadShowData start, children before empty:", this.contentEl.children.length);
-        let scrollTop = 0;
+        if (this.settings.DEBUG) console.log("[BPM] reloadShowData start, children before empty:", this.contentEl.children.length);
         const modalElement: HTMLElement = this.contentEl;
-        scrollTop = modalElement.scrollTop;
+        const scrollTop = modalElement.scrollTop;
         modalElement.empty();
         if (this.installMode) {
             this.showInstallPanel();
+            modalElement.scrollTo(0, scrollTop);
         } else {
-            this.showData();
+            await this.showData();
             modalElement.scrollTo(0, scrollTop);
         }
-        console.log("[BPM] reloadShowData end, children after render:", this.contentEl.children.length);
+        if (this.settings.DEBUG) console.log("[BPM] reloadShowData end, children after render:", this.contentEl.children.length);
     }
 
     private refreshFilterOptions() {
