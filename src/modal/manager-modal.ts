@@ -526,7 +526,22 @@ export class ManagerModal extends Modal {
             if (renderedIds.has(plugin.id)) continue;
             renderedIds.add(plugin.id);
             const ManagerPlugin = this.manager.settings.Plugins.find((mp) => mp.id === plugin.id);
-            const pluginDir = normalizePath(`${this.app.vault.configDir}/${plugin.dir ? plugin.dir : ""}`);
+            // 计算插件目录的绝对路径：基于 vault 根路径 + configDir + plugin.dir
+            const getBasePath = (this.app.vault.adapter as any)?.getBasePath?.() as string | undefined;
+            const basePath = getBasePath ? normalizePath(getBasePath) : "";
+            const cfgDir = this.app.vault.configDir; // 默认 .obsidian
+            const rawDir = plugin.dir || `plugins/${plugin.id}`;
+            const isAbsolute = new RegExp("^(?:[a-zA-Z]:[\\\\/]|[\\\\/])").test(rawDir);
+            let pluginDir: string;
+            if (isAbsolute) {
+                pluginDir = normalizePath(rawDir);
+            } else if (rawDir.startsWith(cfgDir) || rawDir.startsWith(".") || rawDir.startsWith("/")) {
+                // 已包含 .obsidian 或以相对根路径开头，直接拼 vault 根路径
+                pluginDir = normalizePath(`${basePath}/${rawDir}`);
+            } else {
+                // 仅给出 plugins/<id> 相对路径，补上 configDir
+                pluginDir = normalizePath(`${basePath}/${cfgDir}/${rawDir}`);
+            }
             if (this.settings.DEBUG) console.log("[BPM] render item", plugin.id, "children before add:", this.contentEl.children.length);
             if (!ManagerPlugin) continue;
             // 插件是否开启
