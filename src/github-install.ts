@@ -101,6 +101,7 @@ export const installPluginFromGithub = async (manager: Manager, repoInput: strin
 		const token = manager.settings.GITHUB_TOKEN?.trim() || undefined;
 		const release = await getRelease(repo, version, token);
 		const tag = release.tag_name || version || "";
+		if (manager.settings.DEBUG) console.log("[BPM] install from GitHub", { repo, version, tag });
 
 		const manifestUrl = pickAsset(release, "manifest.json");
 		const mainJsUrl = pickAsset(release, "main.js");
@@ -114,7 +115,10 @@ export const installPluginFromGithub = async (manager: Manager, repoInput: strin
 			if (mainJsUrl) mainJs = await fetchText(mainJsUrl, token);
 			const stylesUrl = pickAsset(release, "styles.css");
 			if (stylesUrl) styles = await fetchText(stylesUrl, token);
-		} catch { /* fallback below */ }
+			if (manager.settings.DEBUG) console.log("[BPM] release assets picked", { manifestUrl: !!manifestUrl, mainJsUrl: !!mainJsUrl, styles: !!styles });
+		} catch (e) {
+			if (manager.settings.DEBUG) console.log("[BPM] release asset fetch failed, will fallback", e);
+		}
 
 		// 资产缺失则回退到 tag raw 文件
 		if (!manifestText || !mainJs) {
@@ -123,6 +127,7 @@ export const installPluginFromGithub = async (manager: Manager, repoInput: strin
 				manifestText = await fetchRawFromTag(repo, tag, "manifest.json", token);
 				mainJs = await fetchRawFromTag(repo, tag, "main.js", token);
 				try { styles = await fetchRawFromTag(repo, tag, "styles.css", token); } catch { /* optional */ }
+				if (manager.settings.DEBUG) console.log("[BPM] fallback to raw tag", { repo, tag, manifest: !!manifestText, main: !!mainJs, styles: !!styles });
 			} catch (e) {
 				console.error("fallback to raw tag failed", e);
 			}
@@ -133,17 +138,19 @@ export const installPluginFromGithub = async (manager: Manager, repoInput: strin
 			return false;
 		}
 
-		const manifest = JSON.parse(manifestText) as { id: string; name: string };
+		const manifest = JSON.parse(manifestText) as { id: string; name: string; version?: string };
 		if (!manifest?.id) {
 			new Notice("manifest.json 缺少 id 字段，无法安装。");
 			return false;
 		}
+		if (manager.settings.DEBUG) console.log("[BPM] manifest parsed", { id: manifest.id, version: manifest.version });
 
 		const adapter = manager.app.vault.adapter;
 		const pluginDir = normalizePath(`${manager.app.vault.configDir}/plugins/${manifest.id}`);
 		const pluginPath = `${pluginDir}/`;
 		if (!(await adapter.exists(pluginDir))) await adapter.mkdir(pluginDir);
 
+		if (manager.settings.DEBUG) console.log("[BPM] writing files", { pluginDir, manifestSize: manifestText.length, mainSize: mainJs.length, stylesSize: styles?.length });
 		await adapter.write(`${pluginPath}manifest.json`, manifestText);
 		await adapter.write(`${pluginPath}main.js`, mainJs);
 		if (styles) await adapter.write(`${pluginPath}styles.css`, styles);
@@ -165,9 +172,14 @@ export const installPluginFromGithub = async (manager: Manager, repoInput: strin
 		await manager.repoResolver.setRepo(manifest.id, repo);
 		// 刷新设置并标签
 		await manager.appPlugins.loadManifests();
+		if (manager.settings.DEBUG) {
+			const loaded = (manager.appPlugins.manifests as any)?.[manifest.id];
+			console.log("[BPM] manifest after reload", { id: manifest.id, loadedVersion: loaded?.version, expected: manifest.version });
+		}
 		manager.synchronizePlugins(Object.values(manager.appPlugins.manifests).filter((pm: any) => pm.id !== manager.manifest.id) as any);
 		manager.saveSettings();
 		manager.exportPluginNote(manifest.id);
+		if (manager.settings.DEBUG) console.log("[BPM] install complete", { id: manifest.id, markAsBpm });
 
 		new Notice(`${manager.translator.t("安装_成功_提示")}${manifest.name || manifest.id}`);
 		return true;
