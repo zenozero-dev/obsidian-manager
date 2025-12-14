@@ -354,12 +354,12 @@ export class ManagerModal extends Modal {
         this.editorMode ? editorButton.setIcon("pen-off") : editorButton.setIcon("pen");
         editorButton.setTooltip(this.manager.translator.t("管理器_编辑模式_描述"));
         this.bindLongPressTooltip(editorButton.buttonEl, this.manager.translator.t("管理器_编辑模式_描述"));
-        editorButton.onClick(() => {
+        editorButton.onClick(async () => {
             this.editorMode = !this.editorMode;
             this.editorMode ? editorButton.setIcon("pen-off") : editorButton.setIcon("pen");
             this.applyEditingStyle();
             if (!this.editorMode) {
-                this.refreshFilterOptions();
+                await this.refreshFilterOptions(true);
             } else {
                 this.renderContent();
             }
@@ -956,32 +956,41 @@ export class ManagerModal extends Modal {
                     toggleSwitch.setValue(isEnabled);
                     toggleSwitch.onChange(async () => {
                         const ManagerPlugin = this.settings.Plugins.find((p) => p.id === plugin.id);
+                        const targetEnabled = toggleSwitch.getValue();
+                        const removeByFilter = (this.filter === "enabled" && !targetEnabled) || (this.filter === "disabled" && targetEnabled);
+                        const updateCardUI = () => {
+                            if (this.settings.FADE_OUT_DISABLED_PLUGINS) {
+                                itemEl.settingEl.toggleClass("inactive", !targetEnabled);
+                            }
+                            // 按需从当前视图移除，避免全量重绘
+                            if (removeByFilter) {
+                                itemEl.settingEl.detach();
+                            }
+                            // 更新底部统计
+                            this.footEl.innerHTML = this.count();
+                        };
                         if (this.settings.DELAY) {
-                            if (toggleSwitch.getValue()) {
-                                if (this.settings.FADE_OUT_DISABLED_PLUGINS) itemEl.settingEl.removeClass("inactive"); // [淡化插件]
+                            if (targetEnabled) {
                                 if (ManagerPlugin) ManagerPlugin.enabled = true;
                                 await this.manager.savePluginAndExport(plugin.id);
                                 await this.appPlugins.enablePlugin(plugin.id);
                             } else {
-                                if (this.settings.FADE_OUT_DISABLED_PLUGINS) itemEl.settingEl.addClass("inactive"); // [淡化插件]
                                 if (ManagerPlugin) ManagerPlugin.enabled = false;
                                 await this.manager.savePluginAndExport(plugin.id);
                                 await this.appPlugins.disablePlugin(plugin.id);
                             }
                         } else {
-                            if (toggleSwitch.getValue()) {
-                                if (this.settings.FADE_OUT_DISABLED_PLUGINS) itemEl.settingEl.removeClass("inactive"); // [淡化插件]
+                            if (targetEnabled) {
                                 if (ManagerPlugin) ManagerPlugin.enabled = true;
                                 await this.appPlugins.enablePluginAndSave(plugin.id);
                             } else {
-                                if (this.settings.FADE_OUT_DISABLED_PLUGINS) itemEl.settingEl.addClass("inactive"); // [淡化插件]
                                 if (ManagerPlugin) ManagerPlugin.enabled = false;
                                 await this.appPlugins.disablePluginAndSave(plugin.id);
                             }
                             await this.manager.savePluginAndExport(plugin.id);
                         }
                         Commands(this.app, this.manager);
-                        this.reloadShowData();
+                        updateCardUI();
                     });
                 }
                 //
@@ -1157,7 +1166,8 @@ export class ManagerModal extends Modal {
         if (this.settings.DEBUG) console.log("[BPM] reloadShowData end, children after render:", this.contentEl.children.length);
     }
 
-    private refreshFilterOptions() {
+    private async refreshFilterOptions(preserveScroll = false) {
+        const scrollTop = preserveScroll ? this.contentEl.scrollTop : 0;
         // 重新计算并刷新分组/标签/延迟下拉的计数
         if (this.groupDropdown) {
             const currentGroup = this.groupDropdown.selectEl.value ?? (this.settings.PERSISTENCE ? this.settings.FILTER_GROUP : this.group);
@@ -1180,7 +1190,8 @@ export class ManagerModal extends Modal {
             const current = this.settings.PERSISTENCE ? this.settings.FILTER_DELAY : currentDelay;
             this.resetDropdown(this.delayDropdown, delays, current);
         }
-        this.renderContent();
+        await this.reloadShowData();
+        if (preserveScroll) this.contentEl.scrollTo({ top: scrollTop });
     }
 
     private resetDropdown(dropdown: DropdownComponent, options: Record<string, string>, value: string) {
