@@ -3,6 +3,8 @@ import { Delay, ManagerPlugin, Tag, Type } from '../data/types';
 export interface ManagerSettings {
     // 持久化
     PERSISTENCE: boolean;
+    // 记住搜索内容
+    FILTER_SEARCH: string;
     // 过滤标签
     FILTER_TAG: string;
     // 过滤分组
@@ -59,6 +61,7 @@ export interface ManagerSettings {
 export const DEFAULT_SETTINGS: ManagerSettings = {
     PERSISTENCE: false,
     // 筛选
+    FILTER_SEARCH: "",
     FILTER_TAG: "",
     FILTER_GROUP: "",
     FILTER_DELAY: "",

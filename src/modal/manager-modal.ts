@@ -521,7 +521,19 @@ export class ManagerModal extends Modal {
 
         // [搜索行] 搜索框
         this.searchEl = new SearchComponent(searchBar.controlEl);
-        this.searchEl.onChange((value: string) => { this.searchText = value; this.reloadShowData(); });
+        if (this.settings.PERSISTENCE && typeof this.settings.FILTER_SEARCH === "string") {
+            this.searchText = this.settings.FILTER_SEARCH;
+            // 避免 setValue 触发额外渲染：先设置 input 值，再在 onChange 里统一处理
+            this.searchEl.inputEl.value = this.searchText;
+        }
+        this.searchEl.onChange((value: string) => {
+            this.searchText = value;
+            if (this.settings.PERSISTENCE) {
+                this.settings.FILTER_SEARCH = value;
+                this.manager.saveSettings();
+            }
+            this.reloadShowData();
+        });
     }
 
     public async showData() {
