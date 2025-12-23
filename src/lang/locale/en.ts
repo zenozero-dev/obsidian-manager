@@ -81,6 +81,8 @@ export default {
     管理器_视频教程_描述: 'Access video tutorials',
     管理器_编辑模式_描述: 'Enable edit mode for in-depth plugin configuration customization',
     管理器_重载插件_描述: 'Reload plugins to take effect immediately',
+    管理器_重载插件_开始提示: 'Refreshing plugin manifests…',
+    管理器_重载插件_失败提示: 'Reload failed. Please try again (see console for details).',
     管理器_检查更新_描述: 'Check for plugin updates',
     管理器_一键禁用_描述: 'Disable all plugins at once',
     管理器_一键启用_描述: 'Enable all plugins at once',

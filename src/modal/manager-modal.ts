@@ -75,6 +75,7 @@ export class ManagerModal extends Modal {
     delayDropdown?: DropdownComponent;
     actionCollapsed = false;
     filterCollapsed = false;
+    private reloadingManifests = false;
 
 
     // 编辑模式
@@ -284,9 +285,23 @@ export class ManagerModal extends Modal {
         reloadButton.setTooltip(this.manager.translator.t("管理器_重载插件_描述"));
         this.bindLongPressTooltip(reloadButton.buttonEl, this.manager.translator.t("管理器_重载插件_描述"));
         reloadButton.onClick(async () => {
-            new Notice("重新加载第三方插件");
-            await this.appPlugins.loadManifests();
-            this.reloadShowData();
+            if (this.reloadingManifests) return;
+            this.reloadingManifests = true;
+            reloadButton.setDisabled(true);
+            const notice = new Notice(this.manager.translator.t("管理器_重载插件_开始提示"), 0);
+            // 让 UI 先渲染提示再进行重操作
+            await new Promise((r) => window.setTimeout(r, 50));
+            try {
+                await this.appPlugins.loadManifests();
+                await this.reloadShowData();
+            } catch (e) {
+                console.error("[BPM] reload manifests failed", e);
+                new Notice(this.manager.translator.t("管理器_重载插件_失败提示"), 4000);
+            } finally {
+                notice.hide();
+                reloadButton.setDisabled(false);
+                this.reloadingManifests = false;
+            }
         });
 
         // [操作行] 一键禁用
