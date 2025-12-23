@@ -954,16 +954,19 @@ export class ManagerModal extends Modal {
                     }
 
                     // [按钮] 打开设置
-                    if (isEnabled) {
-                        const openPluginSetting = new ExtraButtonComponent(itemEl.controlEl);
-                        openPluginSetting.setIcon("settings");
-                        openPluginSetting.setTooltip(this.manager.translator.t("管理器_打开设置_描述"));
-                        openPluginSetting.onClick(() => {
-                            openPluginSetting.setDisabled(true);
-                            this.appSetting.open();
-                            this.appSetting.openTabById(plugin.id);
-                            openPluginSetting.setDisabled(false);
-                        });
+                    const openPluginSetting = new ExtraButtonComponent(itemEl.controlEl);
+                    openPluginSetting.setIcon("settings");
+                    openPluginSetting.setTooltip(this.manager.translator.t("管理器_打开设置_描述"));
+                    openPluginSetting.onClick(() => {
+                        openPluginSetting.setDisabled(true);
+                        this.appSetting.open();
+                        this.appSetting.openTabById(plugin.id);
+                        openPluginSetting.setDisabled(false);
+                    });
+                    const openPluginSettingEl = ((openPluginSetting as any).extraSettingsEl || (openPluginSetting as any).buttonEl) as HTMLElement | undefined;
+                    if (!isEnabled) {
+                        openPluginSetting.setDisabled(true);
+                        if (openPluginSettingEl) openPluginSettingEl.style.display = "none";
                     }
 
                     // [按钮] 打开目录
@@ -1005,6 +1008,9 @@ export class ManagerModal extends Modal {
                             if (this.settings.FADE_OUT_DISABLED_PLUGINS) {
                                 itemEl.settingEl.toggleClass("inactive", !targetEnabled);
                             }
+                            // 同步“打开设置”按钮（启用后出现，禁用后隐藏）
+                            openPluginSetting.setDisabled(!targetEnabled);
+                            if (openPluginSettingEl) openPluginSettingEl.style.display = targetEnabled ? "" : "none";
                             // 按需从当前视图移除，避免全量重绘
                             if (removeByFilter) {
                                 itemEl.settingEl.detach();
