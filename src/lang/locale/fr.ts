@@ -26,7 +26,7 @@ export default {
     设置_基础设置_导出目录_描述: 'Chemin relatif au coffre pour exporter les infos BPM (Base). Appliqué en cliquant sur “Enregistrer”.',
     设置_基础设置_导出目录_示例: 'ex. : BPM-Export',
     设置_基础设置_导出提示_标题: 'Conventions frontmatter',
-    设置_基础设置_导出提示_描述: 'Lecture seule : bpm_ro_id/name/group/tags/delay/installed_via_bpm/updated ; éditable : bpm_rw_desc/note/enabled ; conditionnel : bpm_rwc_repo (sans correspondance officielle et non BPM).',
+    设置_基础设置_导出提示_描述: 'Lecture seule : bpm_ro_id/name/group/tags/delay/installed_via_bpm ; éditable : bpm_rw_desc/note/enabled ; conditionnel : bpm_rwc_repo (sans correspondance officielle et non BPM).',
     设置_基础设置_GITHUB_TOKEN_标题: 'GitHub API Token',
     设置_基础设置_GITHUB_TOKEN_描述: 'Pour télécharger depuis GitHub et réduire les limites d’API. Optionnel.',
     设置_基础设置_GITHUB_TOKEN_权限: 'Portée requise : Public repositories',

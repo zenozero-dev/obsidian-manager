@@ -26,7 +26,7 @@ export default {
     设置_基础设置_导出目录_描述: 'Путь относительно хранилища для экспорта данных BPM (Base). Применяется при нажатии “Сохранить”.',
     设置_基础设置_导出目录_示例: 'напр.: BPM-Export',
     设置_基础设置_导出提示_标题: 'Правила frontmatter',
-    设置_基础设置_导出提示_描述: 'Только чтение: bpm_ro_id/name/group/tags/delay/installed_via_bpm/updated; редактируемые: bpm_rw_desc/note/enabled; условные: bpm_rwc_repo (без официального совпадения и не BPM).',
+    设置_基础设置_导出提示_描述: 'Только чтение: bpm_ro_id/name/group/tags/delay/installed_via_bpm; редактируемые: bpm_rw_desc/note/enabled; условные: bpm_rwc_repo (без официального совпадения и не BPM).',
     设置_基础设置_GITHUB_TOKEN_标题: 'GitHub API Token',
     设置_基础设置_GITHUB_TOKEN_描述: 'Для загрузки из GitHub и уменьшения лимитов API. Опционально.',
     设置_基础设置_GITHUB_TOKEN_权限: 'Необходимы: Public repositories',

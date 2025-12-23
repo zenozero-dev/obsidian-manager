@@ -50,7 +50,7 @@ export default {
     设置_基础设置_导出目录_描述: '相对库路径的文件夹，用于导出 BPM 插件信息（支持 Base）。不会在输入时立刻写入，需点击“保存设置”。',
     设置_基础设置_导出目录_示例: '例如: BPM-Export',
     设置_基础设置_导出提示_标题: '前置约定（frontmatter 键名）',
-    设置_基础设置_导出提示_描述: '只读: bpm_ro_id/name/group/tags/delay/installed_via_bpm/updated；可写: bpm_rw_desc/note/enabled；条件可写: bpm_rwc_repo（仅官方未匹配且非 BPM 安装时）。',
+    设置_基础设置_导出提示_描述: '只读: bpm_ro_id/name/group/tags/delay/installed_via_bpm；可写: bpm_rw_desc/note/enabled；条件可写: bpm_rwc_repo（仅官方未匹配且非 BPM 安装时）。',
     设置_基础设置_GITHUB_TOKEN_标题: 'GitHub API Token',
     设置_基础设置_GITHUB_TOKEN_描述: '用于从 GitHub 下载插件/主题，避免频繁的 API 限流。可留空。',
     设置_基础设置_GITHUB_TOKEN_权限: '需要权限：Public repositories',

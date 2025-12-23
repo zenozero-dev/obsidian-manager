@@ -305,9 +305,13 @@ export default class Manager extends Plugin {
             }
             const targetPath = await this.resolveExportPath(mp, vaultRelativeDir);
             let body = `\n\n${this.translator.t('导出_正文提示')}`;
+            let existingFrontmatter: Record<string, any> | null = null;
+            let existingContent: string | null = null;
             if (await adapter.exists(targetPath)) {
                 const old = await adapter.read(targetPath);
+                existingContent = old;
                 const parsed = this.parseFrontmatter(old);
+                existingFrontmatter = parsed.frontmatter ?? null;
                 body = parsed.body || body;
             }
             // 解析 repo 映射（官方清单 / BPM 安装 / 手动设置）
@@ -318,7 +322,7 @@ export default class Manager extends Plugin {
             } catch (e) {
                 console.error("解析仓库映射失败", e);
             }
-            const frontmatter: Record<string, any> = {
+            const bpmFrontmatter: Record<string, any> = {
                 "bpm_ro_id": mp.id,
                 "bpm_ro_name": mp.name,
                 "bpm_rw_desc": mp.desc,
@@ -329,10 +333,16 @@ export default class Manager extends Plugin {
                 "bpm_ro_tags": mp.tags,
                 "bpm_ro_delay": mp.delay,
                 "bpm_ro_installed_via_bpm": this.settings.BPM_INSTALLED.includes(mp.id),
-                "bpm_ro_updated": new Date().toISOString(),
             };
+            // 保留用户自定义 frontmatter（非 bpm_*），仅更新 bpm_* 字段
+            const kept = Object.fromEntries(Object.entries(existingFrontmatter ?? {}).filter(([k]) => !k.startsWith("bpm_")));
+            const frontmatter: Record<string, any> = { ...bpmFrontmatter, ...kept };
+
             const yaml = stringifyYaml(frontmatter).trimEnd();
             const content = `---\n${yaml}\n---${body.startsWith("\n") ? "" : "\n"}${body}`;
+
+            // 只有当内容确实发生变化时才写入，避免频繁触发文件更新/同步
+            if (existingContent !== null && existingContent === content) return;
             this.exportWriting = true;
             await adapter.write(targetPath, content);
         } catch (e) {

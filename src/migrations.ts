@@ -1,5 +1,6 @@
 import Manager from "main";
 import { ensureBpmTagExists } from "src/repo-resolver";
+import { normalizePath, parseYaml, stringifyYaml } from "obsidian";
 
 type Migration = {
 	version: string;
@@ -52,6 +53,59 @@ const migrations: Migration[] = [
 			}
 			if (changed) await manager.saveSettings();
 		}
+	},
+	{
+		version: "0.3.2",
+		run: async (manager) => {
+			// 从旧版导出笔记中移除 bpm_ro_updated，避免无意义的频繁写入
+			const exportDir = manager.settings.EXPORT_DIR;
+			if (!exportDir) return;
+
+			const normalizedDir = normalizePath(exportDir);
+			const mdFiles = manager.app.vault.getMarkdownFiles().filter((f) => {
+				const p = normalizePath(f.path);
+				return p === normalizedDir || p.startsWith(normalizedDir + "/");
+			});
+
+			const parseFrontmatter = (content: string): { frontmatter: any; body: string } => {
+				if (!content.startsWith("---")) return { frontmatter: null, body: content };
+				const end = content.indexOf("\n---", 3);
+				if (end === -1) return { frontmatter: null, body: content };
+				const raw = content.slice(3, end).trim();
+				let fm: any = null;
+				try {
+					fm = parseYaml(raw);
+				} catch {
+					fm = null;
+				}
+				const body = content.slice(end + 4);
+				return { frontmatter: fm, body };
+			};
+
+			let changed = false;
+			for (const f of mdFiles) {
+				try {
+					const old = await manager.app.vault.read(f);
+					const parsed = parseFrontmatter(old);
+					const fm = parsed.frontmatter;
+					if (!fm || !fm["bpm_ro_id"] || !("bpm_ro_updated" in fm)) continue;
+					delete fm["bpm_ro_updated"];
+					const yaml = stringifyYaml(fm).trimEnd();
+					const next = `---\n${yaml}\n---${parsed.body.startsWith("\n") ? "" : "\n"}${parsed.body}`;
+					if (next !== old) {
+						await manager.app.vault.adapter.write(f.path, next);
+						changed = true;
+					}
+				} catch {
+					// ignore single file failures
+				}
+			}
+
+			if (changed) {
+				// 仅用于迁移期间记录，无需额外保存设置
+				return;
+			}
+		},
 	},
 ];
 
